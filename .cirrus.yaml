@@ -1,0 +1,10 @@
+task:
+  name: "test"
+  timeout_in: 120m
+  windows_container:
+    image: cirrusci/windowsservercore:2019
+    cpu: 8
+    memory: 32G
+    greedy: true
+
+  sync_script: echo "c"
