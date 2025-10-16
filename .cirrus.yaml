@@ -1,5 +1,5 @@
 task:
-  name: "windows_setup_and_rdp"
+  name: "windows_setup"
   timeout_in: 120m
   windows_container:
     image: cirrusci/windowsservercore:2019
@@ -18,7 +18,13 @@ task:
     
     Write-Host "2. Mengkonfigurasi Remote Desktop (RDP)..."
     Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+    
+    Write-Host "   Memulai layanan Windows Firewall..."
+    Start-Service -Name mpssvc
+    
+    Write-Host "   Mengaktifkan aturan Firewall untuk RDP..."
     Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    
     Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
     
     Write-Host "3. Mengatur password untuk user 'runneradmin'..."
@@ -31,6 +37,5 @@ task:
     Start-Sleep -Seconds 10
 
   main_script:
-    - Write-Host "Ini adalah script utama yang berjalan setelah RDP dan Playit siap."
     - Write-Host "Menunggu 2 jam agar RDP tetap bisa diakses..."
     - Start-Sleep -Seconds 7200
