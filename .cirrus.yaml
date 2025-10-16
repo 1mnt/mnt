@@ -1,5 +1,5 @@
 task:
-  name: "test"
+  name: "windows_setup"
   timeout_in: 120m
   windows_container:
     image: cirrusci/windowsservercore:2019
@@ -7,4 +7,29 @@ task:
     memory: 32G
     greedy: true
 
-  sync_script: echo "c"
+  env:
+    RDP_PASSWORD: "Duck@Duck!0"
+    PLAYIT_SECRET: "1b226d4ab8b5737fbb426a35526757f8cd879d56a49b5f2c8c1169cac0bc01ef"
+
+  setup_script: |
+    Write-Host "1. Mengunduh Playit Agent..."
+    Invoke-WebRequest -Uri "https://github.com/playit-cloud/playit-agent/releases/download/v0.16.2/playit-windows-x86_64-signed.exe" -OutFile "$env:USERPROFILE\playit.exe"
+    
+    Write-Host "2. Mengkonfigurasi Remote Desktop (RDP)..."
+    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -name "fDenyTSConnections" -Value 0
+    Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+    Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+    
+    Write-Host "3. Mengatur password untuk user 'runneradmin'..."
+    Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText $env:RDP_PASSWORD -Force)
+    
+    Write-Host "4. Memulai Playit Agent di latar belakang..."
+    Start-Process -FilePath "$env:USERPROFILE\playit.exe" -ArgumentList "--secret $env:PLAYIT_SECRET" -NoNewWindow
+    
+    Write-Host "5. Setup selesai. Agent Playit berjalan dan RDP siap digunakan."
+    Start-Sleep -Seconds 10
+
+  main_script:
+    - echo "Ini adalah script utama yang berjalan setelah RDP dan Playit siap."
+    - echo "Menunggu 2 jam agar RDP tetap bisa diakses..."
+    - powershell -Command "Start-Sleep -Seconds 7200"
