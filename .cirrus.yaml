@@ -1,5 +1,5 @@
 task:
-  name: "windows_setup"
+  name: "windows_setup_and_rdp"
   timeout_in: 120m
   windows_container:
     image: cirrusci/windowsservercore:2019
@@ -8,6 +8,7 @@ task:
     greedy: true
 
   env:
+    CIRRUS_SHELL: powershell
     RDP_PASSWORD: "Duck@Duck!0"
     PLAYIT_SECRET: "1b226d4ab8b5737fbb426a35526757f8cd879d56a49b5f2c8c1169cac0bc01ef"
 
@@ -30,6 +31,6 @@ task:
     Start-Sleep -Seconds 10
 
   main_script:
-    - echo "Ini adalah script utama yang berjalan setelah RDP dan Playit siap."
-    - echo "Menunggu 2 jam agar RDP tetap bisa diakses..."
-    - powershell -Command "Start-Sleep -Seconds 7200"
+    - Write-Host "Ini adalah script utama yang berjalan setelah RDP dan Playit siap."
+    - Write-Host "Menunggu 2 jam agar RDP tetap bisa diakses..."
+    - Start-Sleep -Seconds 7200
