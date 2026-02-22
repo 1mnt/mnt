@@ -1,0 +1,32 @@
+env:
+  TG_TOKEN: "ENCRYPTED[!9aa257cad95736f4897f178d239e8a6b387011bada0192a6c220f8ce4b97234be111be60eb3e5d43f227e2cefa8cc20c!]"
+  TG_CHAT_ID: "ENCRYPTED[!4508643dc06e496a5bdef35696637b616238ec9af7111e0efb265d7adbee5a3f5890d487225ccdb1d259b189cf5a567d!]"
+  gitconfigs: "ENCRYPTED[!5ac5f7e17bbdc60d88ddde16c0fa3108b36bc9810a169cccde65cd85733cf7a43288ccb2f37e97129ec29ba9b4a54e5d!]"
+  credensial: "ENCRYPTED[!6912fc4e5cb1786a6b6644ebf2be36c65edee9a49ea4561db2365755753644e9ad86e5160e86ff847b871c750abc2dfe!]"
+  RCLONE_DATA: "ENCRYPTED[!4008a063d4d0ec036c1e66e4f888c9cf8ffb65d5e2d7cba09179ab15865ca5285880a70a35c8d9b59377edd134ca67a8!]"
+  RCLONE_REMOTE: "rov:x"
+  CCACHE_ARCHIVE: "lin-18.tar.gz"
+
+task:
+  name: "Build CI"
+  timeout_in: 120m
+  container:
+    image: ghcr.io/rovars/docker:rovx
+    cpu: 8
+    memory: 32G
+    greedy: true
+  setup_script:
+    - echo "$credensial" > ~/.git-credentials
+    - echo "$gitconfigs" > ~/.gitconfig
+    - mkdir -p ~/.config/rclone
+    - echo "$RCLONE_DATA" > ~/.config/rclone/rclone.conf
+    - rm -rf .git
+    - rovx --start
+  restore_ccache_script: rovx --restore
+  resync_script: ./build.sh --sync
+  build_script: ./build.sh --build
+  upload_script: ./upload.sh
+  save_ccache_script: rovx --save
+  on_failure:
+    notif_error_script:
+      - if [ -f out/error.log ]; then rovx --post "out/error.log" "Build failed! Check error logs."; else rovx --post "Build failed! No error log found."; fi
