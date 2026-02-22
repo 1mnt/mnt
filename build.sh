@@ -16,11 +16,6 @@ build_src() {
     source build/envsetup.sh
     source rovx --env
 
-    export KBUILD_BUILD_USER=nobody
-    export KBUILD_BUILD_HOST=android-build
-    export BUILD_USERNAME=nobody
-    export BUILD_HOSTNAME=android-build
-
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
