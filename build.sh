@@ -14,7 +14,16 @@ setup_src() {
 
 build_src() {
     source build/envsetup.sh
-    source rovx --env
+    source rovx --rbe
+
+    export RBE_CXX_EXEC_STRATEGY="remote"
+    export RBE_JAVAC_EXEC_STRATEGY="remote"
+    export RBE_R8_EXEC_STRATEGY="remote"
+    export RBE_D8_EXEC_STRATEGY="remote"
+
+    export RBE_instance="rovx.buildbuddy.io"
+    export RBE_service="rovx.buildbuddy.io:443"
+    export RBE_remote_headers="$ROVBE"
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
