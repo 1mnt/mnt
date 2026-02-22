@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
@@ -25,8 +25,6 @@ build_src() {
 }
 
 upload_rom() {
-    set -x
-
     release_file=$(find out/target/product -name "*-RMX*.zip" -print -quit)
     release_name=$(basename "$release_file" .zip)
     release_tag=$(date +%Y%m%d)
@@ -47,7 +45,7 @@ upload_rom() {
         fi
 
         mkdir -p ~/.config
-        unzip -q "$PWD/config.zip" -d ~/.config
+        unzip -q "$PWD/rox/config.zip" -d ~/.config
         rovx --post "Uploading build result to Telegram..."
 
         if timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"; then
