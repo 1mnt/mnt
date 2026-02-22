@@ -44,7 +44,7 @@ build_src() {
     export RBE_use_gce_credentials="false"
 
     export RBE_instance="rovx.buildbuddy.io"
-    export RBE_service="grpcs://rovx.buildbuddy.io:443"
+    export RBE_service="rovx.buildbuddy.io:443"
     export RBE_remote_headers="$ROVBE"
 
     local rbex_logs="/tmp/rbelogs"
