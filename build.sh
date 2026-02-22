@@ -14,51 +14,7 @@ setup_src() {
 
 build_src() {
     source build/envsetup.sh
-
-    if [[ ! -d "reclient" ]]; then
-        git clone -q https://github.com/rovars/reclient
-    fi
-
-    cat > "$PWD/reclient_helper.sh" << 'EOF'
-#!/bin/bash
-apikey="${RBE_API_KEY}"
-expiry=$(date +'%a %b %d %H:%M:%S %Z %Y' --date '+6 hours')
-echo "{ \"headers\": { \"x-buildbuddy-api-key\": \"$apikey\" }, \"expiry\": \"$expiry\" }"
-EOF
-    chmod +x "$PWD/reclient_helper.sh"
-
-    local rbex_logs="$PWD/out/rbelogs"
-    local rbex_tmp="$PWD/out/tmp"
-    mkdir -p "$rbex_logs" "$rbex_tmp"
-
-    export RBE_service="rovx.buildbuddy.io:443"
-    export RBE_instance="default"
-    export RBE_credentials_helper="$PWD/reclient_helper.sh"
-    export RBE_use_rpc_credentials="true"
-    export RBE_use_external_auth_token="true"
-    export RBE_use_application_default_credentials="false"
-    export RBE_use_gce_credentials="false"
-    export RBE_cas_concurrency="100"
-    export RBE_compression_threshold="100"
-    export RBE_use_batches="true"
-    export RBE_use_unified_cas_ops="true"
-    export RBE_use_unified_downloads="true"
-    export RBE_use_unified_uploads="true"
-    export RBE_log_dir="$rbex_logs"
-    export RBE_proxy_log_dir="$rbex_logs"
-    export RBE_output_dir="$rbex_logs"
-    export RBE_download_tmp_dir="$rbex_tmp"
-    export RBE_exec_root="$PWD"
-    export RBE_working_dir="$PWD"
-    export USE_RBE="1"
-    export RBE_DIR="$PWD/reclient"
-    export RBE_CXX_EXEC_STRATEGY="remote"
-    export RBE_JAVAC_EXEC_STRATEGY="remote"
-    export RBE_R8_EXEC_STRATEGY="remote"
-    export RBE_D8_EXEC_STRATEGY="remote"
-    export RBE_JAVAC="1"
-    export RBE_R8="1"
-    export RBE_D8="1"
+    source rovx --env
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"

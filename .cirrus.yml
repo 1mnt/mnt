@@ -4,16 +4,10 @@ env:
   gitconfigs: "ENCRYPTED[!39612505f8f1a421e756b563ececd7993aa3dd3053a6bbd4d95b0e189b9fdb9a0723d82765a67919d47f9c856d571b75!]"
   credensial: "ENCRYPTED[!1d61f3f6d7e78f89c2ee7a0937b99597aaa01908688d7c6aed5fec84457252d87fe61104dc9e0bbf74304d8d4ea2a4eb!]"
   RCLONE_DATA: "ENCRYPTED[!8b50f4d6848152f51083a8aaed9174d0399076c3a1d1599ef495bfb0c47a64f43582a656e34b13627f3c0b2e20f1add7!]"
-  # RCLONE_REMOTE: "rov:x"
-  # CCACHE_ARCHIVE: "lin-18.tar.gz"
+  RCLONE_REMOTE: "rov:x"
+  CCACHE_ARCHIVE: "lin-18.tar.gz"
   NINJA_HIGHMEM_NUM_JOBS: "1"
   SKIP_ABI_CHECKS: "true"
-  KBUILD_BUILD_USER: "nobody"
-  KBUILD_BUILD_HOST: "android-build"
-  BUILD_USERNAME: "nobody"
-  BUILD_HOSTNAME: "android-build"
-  ROVBE: "ENCRYPTED[!24537097be89fc93eadfd18d989600cd37b3ac8f14bed3f8031a39ef9f71c7fe76f5537d1a3ed177c4955eaa5c398826!]"
-  RBE_API_KEY: "ENCRYPTED[!fea485eba11c4cc6071b372ce5673acda9664d317e112152119da8422e3288f94fa455653cf4976c6e4f56177ef98ac8!]"
 
 task:
   name: "Build CI"
@@ -38,5 +32,3 @@ task:
   on_failure:
     notif_error_script:
       - if [ -f out/error.log ]; then rovx --post "out/error.log" "Build failed! Check error logs."; else rovx --post "Build failed! No error log found."; fi
-      - zip -r /tmp/rbelogs.zip /tmp/rbelogs
-      - rovx --post "/tmp/rbelogs.zip" "Archive of rbelogs from the failed build"
