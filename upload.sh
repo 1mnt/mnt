@@ -22,7 +22,7 @@ if [[ -f "$release_file" ]]; then
     fi
 
     mkdir -p ~/.config
-    unzip -q rox/config.zip -d ~/.config
+    unzip $PWD/rox/config.zip -d ~/.config
     rovx --post "Uploading build result to Telegram..."
 
     if timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"; then
