@@ -20,14 +20,9 @@ build_src() {
 
     cat > "$PWD/reclient_helper.sh" << 'EOF'
 #!/bin/bash
-cat << HELPER
-{
-  "headers": {
-    "x-buildbuddy-api-key": ["${RBE_API_KEY}"]
-  },
-  "token": "dummy"
-}
-HELPER
+apikey="${RBE_API_KEY}"
+expiry=$(date +'%a %b %d %H:%M:%S %Z %Y' --date '+6 hours')
+echo "{ \"headers\": { \"x-buildbuddy-api-key\": \"$apikey\" }, \"expiry\": \"$expiry\" }"
 EOF
     chmod +x "$PWD/reclient_helper.sh"
 
@@ -68,7 +63,7 @@ EOF
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
-   
+
     lunch lineage_RMX2185-user
     mka bacon
 }
