@@ -45,7 +45,8 @@ EOF
     export RBE_noremote_upload_local_results="true"
     export USE_RBE="1"
     export RBE_DIR="$PWD/reclient"
-    export RBE_exec_root="$PWD"
+    export RBE_exec_root="$(readlink -f .)"
+    export RBE_working_dir="$(readlink -f .)"
     export RBE_CXX_EXEC_STRATEGY="remote"
     export RBE_JAVAC_EXEC_STRATEGY="remote"
     export RBE_R8_EXEC_STRATEGY="remote"
@@ -54,7 +55,7 @@ EOF
     export RBE_R8="1"
     export RBE_D8="1"
 
-    local rbex_logs="/tmp/rbelogs"
+    local rbex_logs="$PWD/out/rbelogs"
     mkdir -p "$rbex_logs"
     export RBE_log_dir="$rbex_logs"
     export RBE_output_dir="$rbex_logs"
