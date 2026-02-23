@@ -12,14 +12,15 @@ setup_src() {
 
 build_src() {
     source "$PWD/build/envsetup.sh"
-    source rovx --env
+    source rovx --remote
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
     lunch lineage_RMX2185-user
-    source "$PWD/rox/script/mmm.sh" icons
+    # source "$PWD/rox/script/mmm.sh" icons
+    m bacon -j$(nproc --all)
 }
 
 upload_build() {
