@@ -7,7 +7,7 @@ setup_src() {
     cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
     repo sync -j8 -c --no-clone-bundle --no-tags
     patch -p1 < "$PWD/rox/script/permissive.patch"
-    source "$PWD/rox/script/constify.sh
+    source "$PWD/rox/script/constify.sh"
     git clone https://codeberg.org/bimuafaq/android_vendor_extra vendor/extra
 }
 
