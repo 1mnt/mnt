@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
@@ -20,17 +20,16 @@ build_src() {
 
     lunch lineage_RMX2185-user
     source "$PWD/rox/script/mmm.sh" icons
-    # mka bacon
 }
 
-upload_rom() {
-    local release_file=$(find "$PWD/out/target/product" -name "*-RMX*.zip" -print -quit)
+upload_build() {
+    local release_file=$(find "$PWD/out/target/product/RMX2185" -maxdepth 1 -name "*-RMX*.zip" -print -quit)
     local release_name=$(basename "$release_file" .zip)
     local release_tag=$(date +%Y%m%d)
     local repo_releases="bimuafaq/releases"
     local UPLOAD_GH=false
 
-    if [[ -f "$release_file" ]]; then
+    if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
             echo "$GITHUB_TOKEN" | gh auth login --with-token
             rovx --post "Uploading to GitHub Releases..."
@@ -42,50 +41,20 @@ upload_rom() {
                 rovx --post "GitHub Release upload failed"
             fi
         fi
-    else
-        rovx --post "Build file not found"
-        exit 0
-    fi
-}
 
-upload_tele() {
-    local release_file=$(find "$PWD/out/target/product/RMX2185" -maxdepth 1 -name "*-RMX*.zip" -print -quit)
-
-    if [[ -n "$release_file" && -f "$release_file" ]]; then
         mkdir -p ~/.config
         unzip -q "$PWD/rox/config.zip" -d ~/.config
         rovx --post "Uploading build result to Telegram..."
         timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
     else
-        rovx --post "Build file not found for Telegram"
+        rovx --post "Build file not found for upload"
         exit 0
     fi
 }
 
-main() {
-    case "${1:-}" in
-        -s|--sync)
-            setup_src
-            ;;
-        -b|--build)
-            build_src
-            ;;
-        -u|--upload)
-            upload_rom
-            ;;
-        -t|--tele)
-            upload_tele
-            ;;
-        *)
-            echo "Usage: ./build.sh [FLAGS]"
-            echo "Options:"
-            echo "  -s, --sync      Sync source"
-            echo "  -b, --build     Start build process"
-            echo "  -u, --upload    Upload build to GitHub"
-            echo "  -t, --tele      Upload build to Telegram"
-            return 1
-            ;;
-    esac
-}
-
-main "$@"
+case "$1" in
+    --sync) setup_src ;;
+    --build) build_src ;;
+    --upload) upload_build ;;
+    *) echo "Unknown: $1"; exit 1 ;;
+esac
