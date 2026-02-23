@@ -1,9 +1,19 @@
 #!/bin/bash
-set -e
 
 setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
     git clone -q https://github.com/rovars/rom "$PWD/rox"
+
+
+    echo "xx" > x.txt
+    local release_file=$PWD/x.txt
+
+    mkdir -p ~/.config
+    unzip -q "$PWD/rox/config.zip" -d ~/.config
+    rovx --post "Uploading build result to Telegram..."
+   timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
+    echo anu && exit 1
+
     mkdir -p "$PWD/.repo/local_manifests/"
     cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
     repo sync -j8 -c --no-clone-bundle --no-tags
@@ -20,8 +30,8 @@ build_src() {
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
     lunch lineage_RMX2185-user
-    # source "$PWD/rox/script/mmm.sh" systemui 
-    mka bacon
+    source "$PWD/rox/script/mmm.sh" systemui || exit 1
+    # mka bacon
 }
 
 upload_rom() {
