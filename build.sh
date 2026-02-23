@@ -13,6 +13,7 @@ setup_src() {
 build_src() {
     source "$PWD/build/envsetup.sh"
     source rovx --remote
+    export RBE_service_no_security=true
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
