@@ -1,19 +1,18 @@
 #!/bin/bash
-
-set -ex
+set -e
 
 setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
-    git clone -q https://github.com/rovars/rom rox
-    mkdir -p .repo/local_manifests/
-    cp -r rox/script/lineage-18.1/*.xml .repo/local_manifests/
+    git clone -q https://github.com/rovars/rom "$PWD/rox"
+    mkdir -p "$PWD/.repo/local_manifests/"
+    cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
     repo sync -j8 -c --no-clone-bundle --no-tags
-    patch -p1 < $PWD/rox/script/permissive.patch
-    source $PWD/rox/script/constify.sh
+    patch -p1 < "$PWD/rox/script/permissive.patch"
+    source "$PWD/rox/script/constify.sh"
 }
 
 build_src() {
-    source build/envsetup.sh
+    source "$PWD/build/envsetup.sh"
     source rovx --env
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
@@ -21,11 +20,12 @@ build_src() {
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
     lunch lineage_RMX2185-user
-    mka bacon
+    source "$PWD/rox/script/mmm.sh" systemui 
+    # mka bacon
 }
 
 upload_rom() {
-    release_file=$(find out/target/product -name "*-RMX*.zip" -print -quit)
+    release_file=$(find "$PWD/out/target/product" -name "*-RMX*.zip" -print -quit)
     release_name=$(basename "$release_file" .zip)
     release_tag=$(date +%Y%m%d)
     repo_releases="bimuafaq/releases"
@@ -35,8 +35,8 @@ upload_rom() {
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
             echo "$GITHUB_TOKEN" | gh auth login --with-token
             rovx --post "Uploading to GitHub Releases..."
-            gh release create "$release_tag" -t "$release_name" -R "$repo_releases" -F "rovx/script/notes.txt" || true
-            
+            gh release create "$release_tag" -t "$release_name" -R "$repo_releases" -F "$PWD/rovx/script/notes.txt" || true
+
             if gh release upload "$release_tag" "$release_file" -R "$repo_releases" --clobber; then
                 rovx --post "GitHub Release upload successful: <a href='https://github.com/$repo_releases/releases/tag/$release_tag'>$release_name</a>"
             else
