@@ -20,8 +20,8 @@ build_src() {
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
     lunch lineage_RMX2185-user
-    source "$PWD/rox/script/mmm.sh" systemui 
-    # mka bacon
+    # source "$PWD/rox/script/mmm.sh" systemui 
+    mka bacon
 }
 
 upload_rom() {
@@ -47,13 +47,7 @@ upload_rom() {
         mkdir -p ~/.config
         unzip -q "$PWD/rox/config.zip" -d ~/.config
         rovx --post "Uploading build result to Telegram..."
-
-        if timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"; then
-            rovx --post "Telegram upload successful"
-        else
-            rovx --post "telegram-upload failed"
-            exit 1
-        fi
+        timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
     else
         rovx --post "Build file not found"
         exit 0
