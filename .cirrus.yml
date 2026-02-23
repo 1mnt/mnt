@@ -27,7 +27,7 @@ task:
   restore_ccache_script: rovx --restore
   resync_script: ./build.sh --sync
   build_script: ./build.sh --build
-  save_ccache_script: rovx --save
+  # save_ccache_script: rovx --save
   upload_script: ./build.sh --upload
   on_failure:
     notif_error_script:
