@@ -6,13 +6,15 @@ setup_src() {
 
 
     echo "xx" > xxxbxud-bsjsjs.txt
-    local release_file=$PWD/xxx*.txt
+local release_file=$(find "$PWD" -maxdepth 1 -name "xxx*.txt" -print -quit)
 
-    mkdir -p ~/.config
-    unzip -q "$PWD/rox/config.zip" -d ~/.config
-    rovx --post "Uploading build result to Telegram..."
-   timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
-    echo anu && exit 1
+mkdir -p ~/.config
+unzip -q "$PWD/rox/config.zip" -d ~/.config
+rovx --post "Uploading build result to Telegram..."
+timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
+echo anu && exit 1
+
+    
 
     mkdir -p "$PWD/.repo/local_manifests/"
     cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
