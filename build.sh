@@ -3,19 +3,6 @@
 setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
     git clone -q https://github.com/rovars/rom "$PWD/rox"
-
-
-    echo "xx" > xxxbxud-bsjsjs.txt
-local release_file=$(find "$PWD" -maxdepth 1 -name "xxx*.txt" -print -quit)
-
-mkdir -p ~/.config
-unzip -q "$PWD/rox/config.zip" -d ~/.config
-rovx --post "Uploading build result to Telegram..."
-timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
-echo anu && exit 1
-
-    
-
     mkdir -p "$PWD/.repo/local_manifests/"
     cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
     repo sync -j8 -c --no-clone-bundle --no-tags
@@ -32,7 +19,7 @@ build_src() {
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
     lunch lineage_RMX2185-user
-    source "$PWD/rox/script/mmm.sh" systemui || exit 1
+    source "$PWD/rox/script/mmm.sh" icons
     # mka bacon
 }
 
@@ -62,12 +49,17 @@ upload_rom() {
 }
 
 upload_tele() {
-    local ROOT_DIR="$PWD"
-    cd "$ROOT_DIR/out/target/product/RMX2185"
-    mkdir -p ~/.config
-    unzip -q "$ROOT_DIR/rox/config.zip" -d ~/.config
-    rovx --post "Uploading build result to Telegram..."
-    timeout 15m telegram-upload *-RMX*.zip --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
+    local release_file=$(find "$PWD/out/target/product/RMX2185" -maxdepth 1 -name "*-RMX*.zip" -print -quit)
+
+    if [[ -n "$release_file" && -f "$release_file" ]]; then
+        mkdir -p ~/.config
+        unzip -q "$PWD/rox/config.zip" -d ~/.config
+        rovx --post "Uploading build result to Telegram..."
+        timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
+    else
+        rovx --post "Build file not found for Telegram"
+        exit 0
+    fi
 }
 
 main() {
