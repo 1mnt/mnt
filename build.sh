@@ -5,8 +5,8 @@ setup_src() {
     git clone -q https://github.com/rovars/rom "$PWD/rox"
 
 
-    echo "xx" > x.txt
-    local release_file=$PWD/x.txt
+    echo "xx" > xxxx.txt
+    local release_file=$PWD/xxx*.txt
 
     mkdir -p ~/.config
     unzip -q "$PWD/rox/config.zip" -d ~/.config
@@ -35,11 +35,11 @@ build_src() {
 }
 
 upload_rom() {
-    release_file=$(find "$PWD/out/target/product" -name "*-RMX*.zip" -print -quit)
-    release_name=$(basename "$release_file" .zip)
-    release_tag=$(date +%Y%m%d)
-    repo_releases="bimuafaq/releases"
-    UPLOAD_GH=false
+    local release_file=$(find "$PWD/out/target/product" -name "*-RMX*.zip" -print -quit)
+    local release_name=$(basename "$release_file" .zip)
+    local release_tag=$(date +%Y%m%d)
+    local repo_releases="bimuafaq/releases"
+    local UPLOAD_GH=false
 
     if [[ -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
@@ -53,15 +53,19 @@ upload_rom() {
                 rovx --post "GitHub Release upload failed"
             fi
         fi
-
-        mkdir -p ~/.config
-        unzip -q "$PWD/rox/config.zip" -d ~/.config
-        rovx --post "Uploading build result to Telegram..."
-        timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
     else
         rovx --post "Build file not found"
         exit 0
     fi
+}
+
+upload_tele() {
+    local ROOT_DIR="$PWD"
+    cd "$ROOT_DIR/out/target/product/RMX2185"
+    mkdir -p ~/.config
+    unzip -q "$ROOT_DIR/rox/config.zip" -d ~/.config
+    rovx --post "Uploading build result to Telegram..."
+    timeout 15m telegram-upload *-RMX*.zip --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
 }
 
 main() {
@@ -75,12 +79,16 @@ main() {
         -u|--upload)
             upload_rom
             ;;
+        -t|--tele)
+            upload_tele
+            ;;
         *)
             echo "Usage: ./build.sh [FLAGS]"
             echo "Options:"
             echo "  -s, --sync      Sync source"
             echo "  -b, --build     Start build process"
-            echo "  -u, --upload    Upload build"
+            echo "  -u, --upload    Upload build to GitHub"
+            echo "  -t, --tele      Upload build to Telegram"
             return 1
             ;;
     esac
