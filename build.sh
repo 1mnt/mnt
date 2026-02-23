@@ -8,14 +8,12 @@ setup_src() {
     repo sync -j8 -c --no-clone-bundle --no-tags
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
-    git clone https://codeberg.org/bimuafaq/android_vendor_extra vendor/extra
 }
 
 build_src() {
     source "$PWD/build/envsetup.sh"
     source rovx --ccache
 
-    export TARGET_INCLUDE_MICROG=true
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
