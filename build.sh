@@ -5,7 +5,7 @@ setup_src() {
     git clone -q https://github.com/rovars/rom "$PWD/rox"
 
 
-    echo "xx" > xxxx.txt
+    echo "xx" > xxxbxud-bsjsjs.txt
     local release_file=$PWD/xxx*.txt
 
     mkdir -p ~/.config
