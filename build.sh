@@ -11,7 +11,7 @@ setup_src() {
     rm -rf kernel/realme/RMX2185
     git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
     cd kernel/realme/RMX2185
-    git revert --no-edit eb64a085fe55a90f196fe985552dcd1b278301d8
+    git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
     cd -
 }
 
