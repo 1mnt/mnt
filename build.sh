@@ -8,6 +8,8 @@ setup_src() {
     repo sync -j8 -c --no-clone-bundle --no-tags
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
+    rm -rf kernel/realme/RMX2185
+    git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
     cd kernel/realme/RMX2185
     git revert --no-edit eb64a085fe55a90f196fe985552dcd1b278301d8
     cd -
