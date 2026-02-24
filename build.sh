@@ -37,9 +37,10 @@ upload_build() {
 
     if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
-            echo "$GITHUB_TOKEN" | gh auth login --with-token
+            echo "$GITHUB_TOKEN" > rox.txt
+            gh auth login --with-token < rox.txt
             rovx --post "Uploading to GitHub Releases..."
-            gh release create "$release_tag" -t "$release_name" -R "$repo_releases" -F "$PWD/rovx/script/notes.txt" || true
+            gh release create "$release_tag" -t "$release_name" -R "$repo_releases" -F "$PWD/rox/script/notes.txt" || true
 
             if gh release upload "$release_tag" "$release_file" -R "$repo_releases" --clobber; then
                 rovx --post "GitHub Release upload successful: <a href='https://github.com/$repo_releases/releases/tag/$release_tag'>$release_name</a>"
