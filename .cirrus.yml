@@ -1,35 +1,21 @@
 env:
   TG_TOKEN: "ENCRYPTED[!0354a0960f17e898e8366072a72fe998614dcb84c1db7b10e149a0ae626b1a7d8142a896b7559d9aef81b5c92ed2e1dc!]"
-  TG_CHAT_ID: "ENCRYPTED[!b30827a124f46611ab38418d73aac204741dc4bef242fa936655b5d97140f6c9bcfa0adee508ddde5b643c2cad685f46!]"
-  gitconfigs: "ENCRYPTED[!39612505f8f1a421e756b563ececd7993aa3dd3053a6bbd4d95b0e189b9fdb9a0723d82765a67919d47f9c856d571b75!]"
-  credensial: "ENCRYPTED[!1d61f3f6d7e78f89c2ee7a0937b99597aaa01908688d7c6aed5fec84457252d87fe61104dc9e0bbf74304d8d4ea2a4eb!]"
-  RCLONE_DATA: "ENCRYPTED[!8b50f4d6848152f51083a8aaed9174d0399076c3a1d1599ef495bfb0c47a64f43582a656e34b13627f3c0b2e20f1add7!]"
-  RCLONE_REMOTE: "rov:x"
-  CCACHE_ARCHIVE: "lin-18.tar.gz"
-  NINJA_HIGHMEM_NUM_JOBS: "1"
-  GITHUB_TOKEN: "ENCRYPTED[!df678f2492b6152e78ec218b47b640a39c8eb4779c332686271ddd85d0eaddf1eff9f3be373841b726fa2ac4a40c9640!]"
+  TG_CHAT_ID: "ENCRYPTED[!b30827a124f46611ab38418d73aac204741dc4bef242fa936655b5d97140f6c9bcfa0adee508ddde5b643c2cad685f46!]"!]"
   RBE_API_KEY: "ENCRYPTED[!58988043cfcf586c82c855db5bf14db0ce1b5cfd6ee48036cab5345368bd6da99af97b05ff38ca08854b210dee8e44c9!]"
+  GITHUB_TOKEN: "ENCRYPTED[!df678f2492b6152e78ec218b47b640a39c8eb4779c332686271ddd85d0eaddf1eff9f3be373841b726fa2ac4a40c9640!]"
 
 task:
-  name: "Build CI"
+  name: "Build Vanadium"
   timeout_in: 120m
   container:
-    image: ghcr.io/rovars/docker:rovx
+    image: ghcr.io/rovars/docker:chromium
     cpu: 8
     memory: 32G
     greedy: true
-  setup_script:
-    - echo "$credensial" > ~/.git-credentials
-    - echo "$gitconfigs" > ~/.gitconfig
-    - mkdir -p ~/.config/rclone
-    - echo "$RCLONE_DATA" > ~/.config/rclone/rclone.conf
+
+  build_script:
     - rm -rf .git
-    - rovx --start
-  restore_ccache_script: rovx --restore
-  resync_script: ./build.sh --sync
-  build_script: ./build.sh --build
-  # save_ccache_script: rovx --save
-  upload_script: ./build.sh --upload
-  on_failure:
-    notif_error_script:
-      - if [ -f out/error.log ]; then rovx --post "out/error.log" "Build failed! Check error logs."; else rovx --post "Build failed! No error log found."; fi
+    - /opt/cirrus_env --started
+    - git clone -q https://rovars:${GITHUB_TOKEN}@github.com/rovars/rom rom
+    - chmod +x build.sh
+    - ./build.sh
