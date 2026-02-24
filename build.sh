@@ -1,67 +1,121 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-setup_src() {
-    repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
-    git clone -q https://github.com/rovars/rom "$PWD/rox"
-    mkdir -p "$PWD/.repo/local_manifests/"
-    cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
-    repo sync -j8 -c --no-clone-bundle --no-tags
-    patch -p1 < "$PWD/rox/script/permissive.patch"
-    source "$PWD/rox/script/constify.sh"
-    rm -rf kernel/realme/RMX2185
-    git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
-    cd kernel/realme/RMX2185
-    git revert --no-edit eb64a085fe55a90f196fe985552dcd1b278301d8
-    cd -
+set -ex
+
+ROOT_DIR="$(pwd)"
+ROM_REPO_DIR="$ROOT_DIR/rom"
+
+cat > "$ROOT_DIR/siso_helper.sh" << 'EOF'
+#!/bin/bash
+cat << HELPER
+{
+  "headers": {
+    "x-buildbuddy-api-key": ["${RBE_API_KEY}"]
+  },
+  "token": "dummy"
 }
+HELPER
+EOF
+chmod +x "$ROOT_DIR/siso_helper.sh"
 
-build_src() {
-    source "$PWD/build/envsetup.sh"
-    source rovx --ccache
+if [ -z "$RBE_API_KEY" ]; then
+  echo "ERROR: RBE_API_KEY not set. Please export it in your environment."
+  exit 1
+fi
 
-    export OWN_KEYS_DIR="$PWD/rox/keys"
-    sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
-    sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
+export SISO_PROFILER=1
+export SISO_CREDENTIAL_HELPER="$ROOT_DIR/siso_helper.sh"
+export SISO_FALLBACK=true
+export SISO_ARGS="-reapi_keep_exec_stream -fs_min_flush_timeout 300s"
 
-    lunch lineage_RMX2185-user
-    # source "$PWD/rox/script/mmm.sh" icons
-    mka bacon
-}
+export DEPOT_TOOLS_UPDATE=1
+export GCLIENT_SUPPRESS_GIT_VERSION_WARNING=1
+export PATH="$ROOT_DIR/depot_tools:$PATH"
 
-upload_build() {
-    local release_file=$(find "$PWD/out/target/product/RMX2185" -maxdepth 1 -name "*-RMX*.zip" -print -quit)
-    local release_name=$(basename "$release_file" .zip)
-    local release_tag=$(date +%Y%m%d)
-    local repo_releases="bimuafaq/releases"
-    local UPLOAD_GH=true
+git clone -q --depth=1 https://chromium.googlesource.com/chromium/tools/depot_tools.git "$ROOT_DIR/depot_tools"
 
-    if [[ -n "$release_file" && -f "$release_file" ]]; then
-        if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
-            echo "$GITHUB_TOKEN" > rox.txt
-            gh auth login --with-token < rox.txt
-            rovx --post "Uploading to GitHub Releases..."
-            gh release create "$release_tag" -t "$release_name" -R "$repo_releases" -F "$PWD/rox/script/notes.txt" || true
+VANADIUM_TAG=$(git ls-remote --tags --sort="v:refname" https://github.com/GrapheneOS/Vanadium.git | tail -n1 | sed 's/.*\///; s/\^{}//')
+git clone -q --depth=1 https://github.com/GrapheneOS/Vanadium.git -b "$VANADIUM_TAG" "$ROOT_DIR/Vanadium"
+cd "$ROOT_DIR/Vanadium"
 
-            if gh release upload "$release_tag" "$release_file" -R "$repo_releases" --clobber; then
-                rovx --post "GitHub Release upload successful: <a href='https://github.com/$repo_releases/releases/tag/$release_tag'>$release_name</a>"
-            else
-                rovx --post "GitHub Release upload failed"
-            fi
+cat > .gclient << EOF
+solutions = [
+  {
+    "name": "src",
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "managed": False,
+    "custom_deps": {},
+    "custom_vars": {
+      "reapi_instance": "default",
+      "reapi_address": "nano.buildbuddy.io:443",
+      "reapi_backend_config_path": "google.star"
+    },
+  },
+]
+target_os = ["android"]
+EOF
+
+gclient sync --nohooks --no-history
+
+cd src
+CHROMIUM_VERSION=$(echo "$VANADIUM_TAG" | cut -d'.' -f1-4)
+git fetch --depth=1 origin "refs/tags/$CHROMIUM_VERSION:refs/tags/$CHROMIUM_VERSION"
+git checkout "$CHROMIUM_VERSION"
+
+gclient sync -D --nohooks --no-history -j 8
+git am --3way --whitespace=nowarn --keep-non-patch ../patches/*.patch
+gclient runhooks
+
+SCRIPT_DIR="$ROM_REPO_DIR/script/chromium"
+if [ -f "$SCRIPT_DIR/rov.keystore" ]; then
+    CERT_DIGEST=$(keytool -export-cert -alias rov -keystore "$SCRIPT_DIR/rov.keystore" -storepass rovars | sha256sum | cut -d' ' -f1)
+else
+    CERT_DIGEST="000000"
+fi
+
+BUILD_DIR="out/Default"
+mkdir -p "$BUILD_DIR"
+
+cp ../args.gn "$BUILD_DIR/args.gn"
+
+sed -i "s/trichrome_certdigest = .*/trichrome_certdigest = \"$CERT_DIGEST\"/" "$BUILD_DIR/args.gn"
+sed -i "s/config_apk_certdigest = .*/config_apk_certdigest = \"$CERT_DIGEST\"/" "$BUILD_DIR/args.gn"
+
+echo "use_remoteexec=true" >> "$BUILD_DIR/args.gn"
+echo "use_reclient=false" >> "$BUILD_DIR/args.gn"
+
+echo 'symbol_level = 0' >> "$BUILD_DIR/args.gn"
+echo 'blink_symbol_level = 0' >> "$BUILD_DIR/args.gn"
+echo 'v8_symbol_level = 0' >> "$BUILD_DIR/args.gn"
+echo 'optimize_for_size = true' >> "$BUILD_DIR/args.gn"
+echo 'dcheck_always_on = false' >> "$BUILD_DIR/args.gn"
+echo 'enable_iterator_debugging = false' >> "$BUILD_DIR/args.gn"
+echo 'exclude_unwind_tables = true' >> "$BUILD_DIR/args.gn"
+echo 'enable_gdbinit = false' >> "$BUILD_DIR/args.gn"
+
+gn gen "$BUILD_DIR"
+
+chrt -b 0 autoninja -C "$BUILD_DIR" chrome_public_apk
+
+mkdir -p ~/.config
+[ -f "$ROM_REPO_DIR/config.zip" ] && unzip -q "$ROM_REPO_DIR/config.zip" -d ~/.config
+
+cd "$BUILD_DIR/apks"
+APKSIGNER=$(find ../../../third_party/android_sdk/public/build-tools -name apksigner -type f | head -n 1)
+
+if [ -f "$SCRIPT_DIR/rov.keystore" ]; then
+    for apk in ChromePublic.apk; do
+        if [ -f "$apk" ]; then
+            "$APKSIGNER" sign --ks "$SCRIPT_DIR/rov.keystore" --ks-pass pass:rovars --ks-key-alias rov --in "$apk" --out "Signed-$apk"
         fi
+    done
+    ARCHIVE_CONTENT="Signed-*.apk"
+else
+    ARCHIVE_CONTENT="*.apk"
+fi
 
-        mkdir -p ~/.config
-        unzip -q "$PWD/rox/config.zip" -d ~/.config
-        rovx --post "Uploading build result to Telegram..."
-        timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
-    else
-        rovx --post "Build file not found for upload"
-        exit 0
-    fi
-}
+ARCHIVE_FILE="Vanadium-${VANADIUM_TAG}-arm64-$(date +%Y%m%d).tar.gz"
+tar -czf "$ROOT_DIR/$ARCHIVE_FILE" $ARCHIVE_CONTENT
 
-case "$1" in
-    --sync) setup_src ;;
-    --build) build_src ;;
-    --upload) upload_build ;;
-    *) echo "Unknown: $1"; exit 1 ;;
-esac
+cd "$ROOT_DIR"
+timeout 15m telegram-upload "$ARCHIVE_FILE" --to "$TG_CHAT_ID"
