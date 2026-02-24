@@ -7,7 +7,7 @@ env:
   RCLONE_REMOTE: "rov:x"
   CCACHE_ARCHIVE: "lin-18.tar.gz"
   NINJA_HIGHMEM_NUM_JOBS: "1"
-  # SKIP_ABI_CHECKS: "true"
+  GITHUB_TOKEN: "ENCRYPTED[!df678f2492b6152e78ec218b47b640a39c8eb4779c332686271ddd85d0eaddf1eff9f3be373841b726fa2ac4a40c9640!]"
 
 task:
   name: "Build CI"

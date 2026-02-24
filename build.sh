@@ -8,6 +8,9 @@ setup_src() {
     repo sync -j8 -c --no-clone-bundle --no-tags
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
+    cd kernel/realme/RMX2185
+    git revert --no-edit eb64a085fe55a90f196fe985552dcd1b278301d8
+    cd -
 }
 
 build_src() {
@@ -28,7 +31,7 @@ upload_build() {
     local release_name=$(basename "$release_file" .zip)
     local release_tag=$(date +%Y%m%d)
     local repo_releases="bimuafaq/releases"
-    local UPLOAD_GH=false
+    local UPLOAD_GH=true
 
     if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
