@@ -13,7 +13,7 @@ setup_src() {
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
 
-    git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
+    # git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
 
     # rm -rf kernel/realme/RMX2185
     # git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
