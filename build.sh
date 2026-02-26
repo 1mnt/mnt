@@ -4,7 +4,7 @@ setup_src() {
     repo init -u https://github.com/LineageOS/android.git -b lineage-18.1 --groups=all,-notdefault,-darwin,-mips --git-lfs --depth=1
     git clone -q https://github.com/rovars/rom "$PWD/rox"
     mkdir -p "$PWD/.repo/local_manifests/"
-    cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
+    cp -r "$PWD/rox/script/lineage-18.1/device.xml" "$PWD/.repo/local_manifests/"
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
