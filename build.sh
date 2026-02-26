@@ -10,7 +10,8 @@ setup_src() {
 
     cp "$PWD/rox/script/ca/f82fe8ed.0" "$PWD/system/ca-certificates/files/"
 
-    patch -p1 < "$PWD/rox/script/permissive.patch"
+    sed -i 's/\$(error SELINUX_IGNORE_NEVERALLOWS/\$(warning SELINUX_IGNORE_NEVERALLOWS/g' system/sepolicy/Android.mk
+    # patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
 
     # git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
