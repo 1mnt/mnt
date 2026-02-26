@@ -8,7 +8,6 @@ env:
   CCACHE_ARCHIVE: "lin-18.tar.gz"
   NINJA_HIGHMEM_NUM_JOBS: "1"
   GITHUB_TOKEN: "ENCRYPTED[!df678f2492b6152e78ec218b47b640a39c8eb4779c332686271ddd85d0eaddf1eff9f3be373841b726fa2ac4a40c9640!]"
-  RBE_API_KEY: "ENCRYPTED[!58988043cfcf586c82c855db5bf14db0ce1b5cfd6ee48036cab5345368bd6da99af97b05ff38ca08854b210dee8e44c9!]"
 
 task:
   name: "Build CI"
@@ -28,7 +27,7 @@ task:
   restore_ccache_script: rovx --restore
   resync_script: ./build.sh --sync
   build_script: ./build.sh --build
-  # save_ccache_script: rovx --save
+  save_ccache_script: rovx --save
   upload_script: ./build.sh --upload
   on_failure:
     notif_error_script:

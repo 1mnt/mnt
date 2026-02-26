@@ -5,14 +5,21 @@ setup_src() {
     git clone -q https://github.com/rovars/rom "$PWD/rox"
     mkdir -p "$PWD/.repo/local_manifests/"
     cp -r "$PWD/rox/script/lineage-18.1/"*.xml "$PWD/.repo/local_manifests/"
+
     repo sync -j8 -c --no-clone-bundle --no-tags
+
+    cp "$PWD/rox/script/ca/f82fe8ed.0" "$PWD/system/ca-certificates/files/"
+
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
-    rm -rf kernel/realme/RMX2185
-    git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
-    cd kernel/realme/RMX2185
-    git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
-    cd -
+
+    git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
+
+    # rm -rf kernel/realme/RMX2185
+    # git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
+    # cd kernel/realme/RMX2185
+    # git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
+    # cd -
 }
 
 build_src() {
@@ -26,6 +33,7 @@ build_src() {
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
     mka bacon
+    find out/target/product/ -name "f82fe8ed.0" || true
 }
 
 upload_build() {
@@ -33,7 +41,7 @@ upload_build() {
     local release_name=$(basename "$release_file" .zip)
     local release_tag=$(date +%Y%m%d)
     local repo_releases="bimuafaq/releases"
-    local UPLOAD_GH=true
+    local UPLOAD_GH=false
 
     if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
