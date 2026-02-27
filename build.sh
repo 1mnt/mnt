@@ -26,34 +26,49 @@ setup_src() {
     git clone https://github.com/rovars/device_realme_RMX2185 device/realme/RMX2185 --depth=5
 }
 
-fix_sepolicy_local() {
+fix_sepolicy_manual() {
     local _my_dev_path="device/realme/RMX2185"
     local _my_target_file="$_my_dev_path/sepolicy/private/audit2allow.te"
-    local _my_build_log
-    local _my_err_line
+    local _my_unknown_type
+    local _my_log_file="/tmp/sepolicy_build.log"
 
     for i in {1..10}
     do
-        _my_build_log=$(mka selinux_policy 2>&1)
+        # Jalankan build dan tampilkan log secara real-time ke terminal
+        mka selinux_policy 2>&1 | tee "$_my_log_file"
         
-        if [[ $? -eq 0 ]]; then
+        # Cek apakah build sukses
+        if [[ ${PIPESTATUS[0]} -eq 0 ]]; then
+            echo "Build Sukses!"
             break
         fi
 
-        _my_err_line=$(echo "$_my_build_log" | grep -oP "$_my_target_file:\K[0-9]+")
+        # Ambil nama type yang error dari file log
+        _my_unknown_type=$(grep -oP "unknown type '\K[^']+" "$_my_log_file" | head -1)
 
-        if [[ -z "$_my_err_line" ]]; then
+        if [[ -z "$_my_unknown_type" ]]; then
+            echo "Error type tidak ditemukan di log, berhenti."
             break
         fi
 
-        sed -i "${_my_err_line}d" "$_my_target_file"
+        echo "Menghapus aturan untuk type: $_my_unknown_type"
+        
+        # Hapus baris yang mengandung type tersebut
+        sed -i "/$_my_unknown_type/d" "$_my_target_file"
 
+        # Proses Git
         cd "$_my_dev_path"
-        git add sepolicy/private/audit2allow.te
-        git commit -m "fix: remove unknown type line $_my_err_line"
-        git push
-        cd -
+        if [[ -n $(git status --porcelain sepolicy/private/audit2allow.te) ]]; then
+            git add sepolicy/private/audit2allow.te
+            git commit -m "fix: remove unknown type $_my_unknown_type"
+            git push
+            echo "Berhasil commit dan push: $_my_unknown_type"
+        else
+            echo "Tidak ada perubahan yang perlu dicommit."
+        fi
+        cd - > /dev/null
     done
+    rovx --post "$_my_log_file"
 }
 
 build_src() {
