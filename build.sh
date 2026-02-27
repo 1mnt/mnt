@@ -29,46 +29,46 @@ setup_src() {
 fix_sepolicy_manual() {
     local _my_dev_path="device/realme/RMX2185"
     local _my_target_file="$_my_dev_path/sepolicy/private/audit2allow.te"
-    local _my_unknown_type
     local _my_log_file="/tmp/sepolicy_build.log"
+    local _my_unknown_type
 
     for i in {1..10}
     do
-        # Jalankan build dan tampilkan log secara real-time ke terminal
-        mka selinux_policy 2>&1 | tee "$_my_log_file"
+        echo "Putaran ke-$i: Menjalankan build..."
         
-        # Cek apakah build sukses
-        if [[ ${PIPESTATUS[0]} -eq 0 ]]; then
-            echo "Build Sukses!"
-            break
+        mka selinux_policy 2>&1 | tee "$_my_log_file"
+        local _build_status=${PIPESTATUS[0]}
+
+        if [[ $_build_status -eq 0 ]]; then
+            echo "Build SEPolicy sukses tanpa error!"
+            return 0
         fi
 
-        # Ambil nama type yang error dari file log
         _my_unknown_type=$(grep -oP "unknown type '\K[^']+" "$_my_log_file" | head -1)
 
         if [[ -z "$_my_unknown_type" ]]; then
-            echo "Error type tidak ditemukan di log, berhenti."
-            break
+            echo "Error bukan 'unknown type' atau log tidak terbaca. Berhenti."
+            return 1
         fi
 
-        echo "Menghapus aturan untuk type: $_my_unknown_type"
-        
-        # Hapus baris yang mengandung type tersebut
+        echo "Nemu error: $_my_unknown_type. Menghapus baris..."
         sed -i "/$_my_unknown_type/d" "$_my_target_file"
 
-        # Proses Git
-        cd "$_my_dev_path"
-        if [[ -n $(git status --porcelain sepolicy/private/audit2allow.te) ]]; then
-            git add sepolicy/private/audit2allow.te
-            git commit -m "fix: remove unknown type $_my_unknown_type"
-            git push
-            echo "Berhasil commit dan push: $_my_unknown_type"
-        else
-            echo "Tidak ada perubahan yang perlu dicommit."
-        fi
-        cd - > /dev/null
+        (
+            cd "$_my_dev_path" || exit
+            if [[ -n $(git status --porcelain sepolicy/private/audit2allow.te) ]]; then
+                git add sepolicy/private/audit2allow.te
+                git commit -m "fix: remove unknown type $_my_unknown_type"
+                git push
+                echo "Git push sukses untuk: $_my_unknown_type"
+            else
+                echo "Tidak ada perubahan di file (mungkin tipe sudah dihapus sebelumnya)."
+            fi
+        )
+
+        echo "Lanjut ke putaran berikutnya..."
+        sleep 2
     done
-    rovx --post "$_my_log_file"
 }
 
 build_src() {
