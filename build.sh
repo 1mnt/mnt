@@ -8,8 +8,6 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    cp "$PWD/rox/script/ca/f82fe8ed.0" "$PWD/system/ca-certificates/files/"
-
     sed -i 's/\$(error SELINUX_IGNORE_NEVERALLOWS/\$(warning SELINUX_IGNORE_NEVERALLOWS/g' system/sepolicy/Android.mk
     patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
