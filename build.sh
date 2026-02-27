@@ -11,7 +11,7 @@ setup_src() {
     cp "$PWD/rox/script/ca/f82fe8ed.0" "$PWD/system/ca-certificates/files/"
 
     sed -i 's/\$(error SELINUX_IGNORE_NEVERALLOWS/\$(warning SELINUX_IGNORE_NEVERALLOWS/g' system/sepolicy/Android.mk
-    # patch -p1 < "$PWD/rox/script/permissive.patch"
+    patch -p1 < "$PWD/rox/script/permissive.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
@@ -34,7 +34,7 @@ build_src() {
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
     mka bacon
-    find out/target/product/ -name "f82fe8ed.0" || true
+
 }
 
 upload_build() {
