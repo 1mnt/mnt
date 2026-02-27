@@ -32,7 +32,7 @@ fix_sepolicy_manual() {
     local _my_error_log="out/error.log"
     local _my_unknown_type
 
-    for i in {1..10}
+    for i in {1..20}
     do
         echo ">>> Percobaan ke-$i"
         mka selinux_policy
