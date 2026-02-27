@@ -23,6 +23,36 @@ setup_src() {
     # cd -
 }
 
+fix_sepolicy_local() {
+    local _my_dev_path="device/realme/RMX2185"
+    local _my_target_file="$_my_dev_path/sepolicy/private/audit2allow.te"
+    local _my_build_log
+    local _my_err_line
+
+    for i in {1..10}
+    do
+        _my_build_log=$(mka selinux_policy 2>&1)
+        
+        if [[ $? -eq 0 ]]; then
+            break
+        fi
+
+        _my_err_line=$(echo "$_my_build_log" | grep -oP "$_my_target_file:\K[0-9]+")
+
+        if [[ -z "$_my_err_line" ]]; then
+            break
+        fi
+
+        sed -i "${_my_err_line}d" "$_my_target_file"
+
+        cd "$_my_dev_path"
+        git add sepolicy/private/audit2allow.te
+        git commit -m "fix: remove unknown type line $_my_err_line"
+        git push
+        cd -
+    done
+}
+
 build_src() {
     source "$PWD/build/envsetup.sh"
     source rovx --ccache
@@ -33,7 +63,7 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    mka selinux_policy
+    fix_sepolicy_local
 
 }
 
