@@ -21,6 +21,9 @@ setup_src() {
     # cd kernel/realme/RMX2185
     # git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
     # cd -
+
+    rm -rf device/realme/RMX2185
+    git clone https://github.com/rovars/device_realme_RMX2185 device/realme/RMX2185 --depth=5
 }
 
 fix_sepolicy_local() {
