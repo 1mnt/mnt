@@ -29,29 +29,34 @@ setup_src() {
 fix_sepolicy_manual() {
     local _my_dev_path="device/realme/RMX2185"
     local _my_target_file="$_my_dev_path/sepolicy/private/audit2allow.te"
-    local _my_log_file="/tmp/sepolicy_build.log"
+    local _my_error_log="out/error.log"
     local _my_unknown_type
 
     for i in {1..10}
     do
-        echo "Putaran ke-$i: Menjalankan build..."
+        echo ">>> Percobaan ke-$i"
+        mka selinux_policy
         
-        mka selinux_policy 2>&1 | tee "$_my_log_file"
-        local _build_status=${PIPESTATUS[0]}
-
-        if [[ $_build_status -eq 0 ]]; then
-            echo "Build SEPolicy sukses tanpa error!"
+        if [[ $? -eq 0 ]]; then
+            echo "Build Sukses!"
             return 0
         fi
 
-        _my_unknown_type=$(grep -oP "unknown type '\K[^']+" "$_my_log_file" | head -1)
-
-        if [[ -z "$_my_unknown_type" ]]; then
-            echo "Error bukan 'unknown type' atau log tidak terbaca. Berhenti."
+        if [[ ! -f "$_my_error_log" ]]; then
             return 1
         fi
 
-        echo "Nemu error: $_my_unknown_type. Menghapus baris..."
+        _my_unknown_type=$(grep "unknown type" "$_my_error_log" | head -1 | grep -oP "unknown type '\K[^']+")
+
+        if [[ -z "$_my_unknown_type" ]]; then
+            _my_unknown_type=$(grep "unknown type" "$_my_error_log" | head -1 | cut -d"'" -f2 | awk '{print $NF}')
+        fi
+
+        if [[ -z "$_my_unknown_type" ]]; then
+            return 1
+        fi
+
+        echo ">>> Fix: $_my_unknown_type"
         sed -i "/$_my_unknown_type/d" "$_my_target_file"
 
         (
@@ -60,13 +65,9 @@ fix_sepolicy_manual() {
                 git add sepolicy/private/audit2allow.te
                 git commit -m "fix: remove unknown type $_my_unknown_type"
                 git push
-                echo "Git push sukses untuk: $_my_unknown_type"
-            else
-                echo "Tidak ada perubahan di file (mungkin tipe sudah dihapus sebelumnya)."
             fi
         )
-
-        echo "Lanjut ke putaran berikutnya..."
+        
         sleep 2
     done
 }
