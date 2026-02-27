@@ -82,7 +82,7 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    fix_sepolicy_manual
+    mka selinux_policy
 }
 
 upload_build() {
