@@ -9,7 +9,7 @@ setup_src() {
     repo sync -j8 -c --no-clone-bundle --no-tags
 
     # sed -i 's/\$(error SELINUX_IGNORE_NEVERALLOWS/\$(warning SELINUX_IGNORE_NEVERALLOWS/g' system/sepolicy/Android.mk
-    patch -p1 < "$PWD/rox/script/permissive_se.patch"
+    # patch -p1 < "$PWD/rox/script/permissive_se.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
@@ -80,8 +80,8 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    mka bacon
-    # mka selinux_policy
+    #mka bacon
+    mka selinux_policy
     # fix_sepolicy_manual
 }
 
