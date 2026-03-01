@@ -12,62 +12,13 @@ setup_src() {
     patch -p1 < "$PWD/rox/script/permissive_se.patch"
     source "$PWD/rox/script/constify.sh"
 
-    git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
+    # git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
 
-    # rm -rf kernel/realme/RMX2185
-    # git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
-    # cd kernel/realme/RMX2185
-    # git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
-    # cd -
-
-    # rm -rf device/realme/RMX2185
-    # git clone https://github.com/rovars/device_realme_RMX2185 device/realme/RMX2185 --depth=5
-}
-
-fix_sepolicy_manual() {
-    local _my_dev_path="device/realme/RMX2185"
-    local _my_target_file="$_my_dev_path/sepolicy/private/audit2allow.te"
-    local _my_error_log="out/error.log"
-    local _my_unknown_type
-
-    for i in {1..20}
-    do
-        echo ">>> Percobaan ke-$i"
-        mka selinux_policy
-        
-        if [[ $? -eq 0 ]]; then
-            echo "Build Sukses!"
-            return 0
-        fi
-
-        if [[ ! -f "$_my_error_log" ]]; then
-            return 1
-        fi
-
-        _my_unknown_type=$(grep "unknown type" "$_my_error_log" | head -1 | grep -oP "unknown type '\K[^']+")
-
-        if [[ -z "$_my_unknown_type" ]]; then
-            _my_unknown_type=$(grep "unknown type" "$_my_error_log" | head -1 | cut -d"'" -f2 | awk '{print $NF}')
-        fi
-
-        if [[ -z "$_my_unknown_type" ]]; then
-            return 1
-        fi
-
-        echo ">>> Fix: $_my_unknown_type"
-        sed -i "/$_my_unknown_type/d" "$_my_target_file"
-
-        (
-            cd "$_my_dev_path" || exit
-            if [[ -n $(git status --porcelain sepolicy/private/audit2allow.te) ]]; then
-                git add sepolicy/private/audit2allow.te
-                git commit -m "fix: remove unknown type $_my_unknown_type"
-                git push
-            fi
-        )
-        
-        sleep 2
-    done
+    rm -rf kernel/realme/RMX2185
+    git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
+    cd kernel/realme/RMX2185
+    git revert --no-edit 6d93885db7cd5ba4cfe32f29edd44a967993e566
+    cd -
 }
 
 build_src() {
@@ -82,7 +33,6 @@ build_src() {
     # source "$PWD/rox/script/mmm.sh" icons
     mka bacon
     # mka selinux_policy
-    # fix_sepolicy_manual
 }
 
 upload_build() {
@@ -90,7 +40,7 @@ upload_build() {
     local release_name=$(basename "$release_file" .zip)
     local release_tag=$(date +%Y%m%d)
     local repo_releases="bimuafaq/releases"
-    local UPLOAD_GH=false
+    local UPLOAD_GH=true
     
     if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
