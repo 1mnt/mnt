@@ -9,7 +9,7 @@ setup_src() {
     repo sync -j8 -c --no-clone-bundle --no-tags
 
     # sed -i 's/\$(error SELINUX_IGNORE_NEVERALLOWS/\$(warning SELINUX_IGNORE_NEVERALLOWS/g' system/sepolicy/Android.mk
-    #patch -p1 < "$PWD/rox/script/permissive_se.patch"
+    patch -p1 < "$PWD/rox/script/permissive_se.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
@@ -31,8 +31,8 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    #mka bacon
-    mka selinux_policy
+    mka bacon
+    #mka selinux_policy
 }
 
 upload_build() {
@@ -40,7 +40,7 @@ upload_build() {
     local release_name=$(basename "$release_file" .zip)
     local release_tag=$(date +%Y%m%d)
     local repo_releases="bimuafaq/releases"
-    local UPLOAD_GH=true
+    local UPLOAD_GH=false
     
     if [[ -n "$release_file" && -f "$release_file" ]]; then
         if [[ "${UPLOAD_GH}" == "true" && -n "$GITHUB_TOKEN" ]]; then
