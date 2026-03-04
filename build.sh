@@ -19,6 +19,9 @@ setup_src() {
     #cd kernel/realme/RMX2185
     #git reset --hard HEAD~3
     #cd -
+
+    rm -rf device/realme/RMX2185
+    git clone https://github.com/rovars/device_realme_RMX2185 device/realme/RMX2185 --depth=1
 }
 
 build_src() {
@@ -31,7 +34,9 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    mka bacon
+    chmod +x "$PWD/rox/script/fix.sh"
+    source "$PWD/rox/script/fix.sh"
+    #mka bacon
     #mka selinux_policy
 }
 
