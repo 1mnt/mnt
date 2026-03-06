@@ -33,10 +33,10 @@ build_src() {
 
     lunch lineage_RMX2185-user
     # source "$PWD/rox/script/mmm.sh" icons
-    chmod +x "$PWD/rox/script/fix.sh"
+    #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
-    mka bacon
-    #mka selinux_policy
+    #mka bacon
+    mka selinux_policy
 }
 
 upload_build() {
