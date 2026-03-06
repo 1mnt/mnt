@@ -17,10 +17,7 @@ setup_src() {
     #git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
     #cd kernel/realme/RMX2185
     #git reset --hard HEAD~3
-    #cd -
-
-    #rm -rf device/realme/RMX2185
-    #git clone https://github.com/rovars/device_realme_RMX2185 device/realme/RMX2185 --depth=1
+    #cd -   
 }
 
 build_src() {
@@ -31,8 +28,13 @@ build_src() {
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
 
+    export KBUILD_BUILD_USER="nobody"
+    export KBUILD_BUILD_HOST="android-build"
+    export BUILD_USERNAME="nobody"
+    export BUILD_HOSTNAME="android-build"
+
     lunch lineage_RMX2185-user
-    # source "$PWD/rox/script/mmm.sh" icons
+    #source "$PWD/rox/script/mmm.sh" icons
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
     mka bacon
