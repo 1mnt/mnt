@@ -8,7 +8,7 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    patch -p1 < "$PWD/rox/script/permissive.patch"
+    patch -p1 < "$PWD/rox/script/permissive_se.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
