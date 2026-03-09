@@ -22,7 +22,7 @@ setup_src() {
 }
 
 build_src() {
-    source "$PWD/build/rbesetup.sh"
+    source "$PWD/build/make/rbesetup.sh"
     # source rovx --ccache
 
     export RBE_use_application_default_credentials="false"
