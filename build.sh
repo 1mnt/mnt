@@ -8,7 +8,8 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    patch -p1 < "$PWD/rox/script/permissive_se.patch"
+    patch -p1 < "$PWD/rox/script/sepolicy.patch"
+    patch -p1 < "$PWD/rox/script/core.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
@@ -22,7 +23,12 @@ setup_src() {
 
 build_src() {
     source "$PWD/build/envsetup.sh"
-    source rovx --ccache
+    # source rovx --ccache
+
+    export RBE_use_application_default_credentials="false"
+    export RBE_server_address="rovx.buildbuddy.io:443"
+    export RBE_instance_name="default_instance"
+    export RBE_service_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
