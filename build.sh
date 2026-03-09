@@ -8,7 +8,7 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    patch -p1 < "$PWD/rox/script/sepolicy.patch"
+    # patch -p1 < "$PWD/rox/script/sepolicy.patch"
     patch -p1 < "$PWD/rox/script/core.patch"
     source "$PWD/rox/script/constify.sh"
 
@@ -39,7 +39,7 @@ build_src() {
     export BUILD_USERNAME="nobody"
     export BUILD_HOSTNAME="android-build"
 
-    lunch lineage_RMX2185-user
+    lunch lineage_RMX2185-userdebug
     #source "$PWD/rox/script/mmm.sh" icons
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
