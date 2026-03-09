@@ -25,9 +25,8 @@ build_src() {
     source "$PWD/build/make/rbesetup.sh"
     # source rovx --ccache
 
-    export RBE_use_application_default_credentials="false"
-    export RBE_server_address="rovx.buildbuddy.io:443"
-    export RBE_instance_name="default_instance"
+    export RBE_service="rovx.buildbuddy.io:443"
+    export RBE_instance="default_instance"
     export RBE_service_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
