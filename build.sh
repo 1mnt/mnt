@@ -26,8 +26,9 @@ build_src() {
     # source rovx --ccache
 
     export RBE_service="rovx.buildbuddy.io:443"
-    export RBE_instance="default_instance"
-    export RBE_service_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
+    export RBE_remote_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
+    export RBE_use_rpc_credentials=false
+    export RBE_service_no_auth=true
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
@@ -42,7 +43,7 @@ build_src() {
     #source "$PWD/rox/script/mmm.sh" icons
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
-    mka bacon
+    use_rbe mka bacon
     #mka selinux_policy
 }
 
