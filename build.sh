@@ -14,6 +14,9 @@ setup_src() {
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
 
+    rm -rf prebuilts/remoteexecution-client/latest
+    git clone https://github.com/rovars/reclient prebuilts/remoteexecution-client/latest
+
     #rm -rf kernel/realme/RMX2185
     #git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
     #cd kernel/realme/RMX2185
