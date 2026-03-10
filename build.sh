@@ -3,57 +3,108 @@
 set -x
 
 setup_sync() {
+    sudo apt-get update -qq && sudo apt-get install -y -qq default-jdk jq curl
+
     git clone -q https://chromium.googlesource.com/chromium/tools/depot_tools.git "$PWD/depot_tools"
     export PATH="$PWD/depot_tools:$PATH"
 
-    VANADIUM_TAG=$(git ls-remote --tags --sort="v:refname" https://github.com/GrapheneOS/Vanadium.git | tail -n1 | sed 's/.*\///; s/\^{}//')
-    echo "$VANADIUM_TAG" > "$PWD/vanadium_tag.txt"
-    CHROMIUM_VERSION=$(echo "$VANADIUM_TAG" | cut -d'.' -f1-4)
+    LATEST_TAG=$(curl -sL https://api.github.com/repos/GrapheneOS/Vanadium/releases/latest | jq -r .tag_name)
+    CHROMIUM_VERSION=${LATEST_TAG%.*}
+    echo "$LATEST_TAG" > "$PWD/vanadium_tag.txt"
 
-    git clone -q --depth=1 -b "$VANADIUM_TAG" https://github.com/GrapheneOS/Vanadium.git "$PWD/Vanadium"
+    git clone -q --depth=1 --branch "$LATEST_TAG" https://github.com/GrapheneOS/Vanadium.git "$PWD/Vanadium"
     git clone -q https://github.com/rovars/rom "$PWD/rom"
     
-    fetch --nohooks --no-history android || true
+    cat << EOF > "$PWD/siso-credential-helper.sh"
+#!/bin/bash
+cat << JSON
+{
+  "headers": { "x-buildbuddy-api-key": ["fLtDdNWsr0itMxV4X4wN"] },
+  "expires": "\$(date --date='now +6 hours' -Iseconds)"
+}
+JSON
+EOF
+    chmod +x "$PWD/siso-credential-helper.sh"
+    export SISO_CREDENTIAL_HELPER="$PWD/siso-credential-helper.sh"
+
+    cat <<EOF > .gclient
+solutions = [
+  {
+    "name": "src",
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "managed": False,
+    "custom_vars": {
+      "rbe_instance": "default_instance",
+      "reapi_address": "nano.buildbuddy.io:443",
+      "reapi_backend_config_path": "${PWD}/src/buildbuddy_backend.star"
+    },
+  },
+]
+target_os = ["android"]
+EOF
+
+    gclient sync --nohooks --no-history --with_tags --revision "src@$CHROMIUM_VERSION"
+
+    cat <<EOF > src/buildbuddy_backend.star
+load("@builtin//struct.star", "module")
+
+def __platform_properties(ctx):
+    container_image = "docker://gcr.io/chops-public-images-prod/rbe/siso-chromium/linux@sha256:d7cb1ab14a0f20aa669c23f22c15a9dead761dcac19f43985bf9dd5f41fbef3a"
+    return {
+        "default": {
+            "OSFamily": "Linux",
+            "container-image": container_image,
+        },
+        "large": {
+            "OSFamily": "Linux",
+            "container-image": container_image,
+        },
+    }
+
+backend = module(
+    "backend",
+    platform_properties = __platform_properties,
+)
+EOF
+
+    sudo DEBIAN_FRONTEND=noninteractive src/build/install-build-deps.sh --android --no-prompt &> /dev/null
 
     cd src
-    ./build/install-build-deps.sh --android --no-prompt &>/dev/null
-    git fetch --depth=1 origin "refs/tags/$CHROMIUM_VERSION:refs/tags/$CHROMIUM_VERSION"
-    git checkout "$CHROMIUM_VERSION"
-    git am --whitespace=nowarn --keep-non-patch "$PWD/../Vanadium/patches/"*.patch
-    gclient sync -D --no-history --shallow --jobs 8
+    git am --whitespace=nowarn --keep-non-patch ../Vanadium/patches/*.patch
+    cd ..
+
+    gclient runhooks
 }
 
 build_src() {
     export PATH="$PWD/depot_tools:$PATH"
-    source rovx --ccache
-    
-    # Ccache optimizations based on Chromium documentation
-    export CCACHE_SLOPPINESS=include_file_mtime
-    export CCACHE_BASEDIR="$PWD"
+    export SISO_CREDENTIAL_HELPER="$PWD/siso-credential-helper.sh"
+
+    if [ -f "$PWD/rom/script/rov.keystore" ]; then
+        CERT_DIGEST=$(keytool -export-cert -alias rov -keystore "$PWD/rom/script/rov.keystore" -storepass rovars | sha256sum | awk '{print $1}')
+    else
+        CERT_DIGEST="c6adb8b83c6d4c17d292afde56fd488a51d316ff8f2c11c5410223bff8a7dbb3"
+    fi
 
     cd src
-    rm -rf out/Default && mkdir -p out/Default
-    cp "$PWD/../Vanadium/args.gn" out/Default/args.gn
-
-    CERT_DIGEST="c6adb8b83c6d4c17d292afde56fd488a51d316ff8f2c11c5410223bff8a7dbb3"
-    keytool -export-cert -alias rov -keystore "$PWD/../rom/script/rov.keystore" -storepass rovars | sha256sum | cut -d' ' -f1 > cert_digest.txt || echo "$CERT_DIGEST" > cert_digest.txt
-    CERT_DIGEST=$(cat cert_digest.txt)
+    mkdir -p out/Default
+    cp ../Vanadium/args.gn out/Default/args.gn
 
     sed -i "s/trichrome_certdigest = .*/trichrome_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
     sed -i "s/config_apk_certdigest = .*/config_apk_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
     sed -i "s/symbol_level = 1/symbol_level = 0/" out/Default/args.gn
-    sed -i "s/use_siso = true/use_siso = false/" out/Default/args.gn
-
+    
     cat <<EOF >> out/Default/args.gn
-ccache_prefix = "ccache"
-blink_symbol_level = 0
+use_remoteexec = true
 v8_symbol_level = 0
+blink_symbol_level = 0
 EOF
 
     gn gen out/Default
-    ccache -z
-    timeout 60m autoninja -C out/Default chrome_public_apk || true
-    ccache -s
+    mkdir -p out
+    timeout 30m siso ninja --offline -C out/Default chrome_public_apk 2>&1 | tee out/error.log || true
+
+    siso ninja -C out/Default chrome_public_apk 2>&1 | tee -a out/error.log
 }
 
 upload_build() {

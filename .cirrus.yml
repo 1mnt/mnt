@@ -3,9 +3,6 @@ env:
   TG_CHAT_ID: "ENCRYPTED[!b30827a124f46611ab38418d73aac204741dc4bef242fa936655b5d97140f6c9bcfa0adee508ddde5b643c2cad685f46!]"
   gitconfigs: "ENCRYPTED[!39612505f8f1a421e756b563ececd7993aa3dd3053a6bbd4d95b0e189b9fdb9a0723d82765a67919d47f9c856d571b75!]"
   credensial: "ENCRYPTED[!1d61f3f6d7e78f89c2ee7a0937b99597aaa01908688d7c6aed5fec84457252d87fe61104dc9e0bbf74304d8d4ea2a4eb!]"
-  RCLONE_DATA: "ENCRYPTED[!8b50f4d6848152f51083a8aaed9174d0399076c3a1d1599ef495bfb0c47a64f43582a656e34b13627f3c0b2e20f1add7!]"
-  RCLONE_REMOTE: "rov:x"
-  CCACHE_ARCHIVE: "vanadium.tar.gz"
   NINJA_HIGHMEM_NUM_JOBS: "1"
 
 task:
@@ -20,16 +17,12 @@ task:
   sync_script:
     - echo "$credensial" > ~/.git-credentials
     - echo "$gitconfigs" > ~/.gitconfig
-    - mkdir -p ~/.config/rclone
-    - echo "$RCLONE_DATA" > ~/.config/rclone/rclone.conf
     - rm -rf .git
     - rovx --start
-    - ./build.sh --sync
+    - ./script/chromium.sh --sync
   
-  restore_cache_script: rovx --restore
-  build_script: ./build.sh --build
-  upload_script: ./build.sh --upload
-  save_cache_script: rovx --save
+  build_script: ./script/chromium.sh --build
+  upload_script: ./script/chromium.sh --upload
 
   on_failure:
     notif_error_script:
