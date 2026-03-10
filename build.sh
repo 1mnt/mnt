@@ -42,6 +42,7 @@ build_src() {
     sed -i "s/trichrome_certdigest = .*/trichrome_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
     sed -i "s/config_apk_certdigest = .*/config_apk_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
     sed -i "s/symbol_level = 1/symbol_level = 0/" out/Default/args.gn
+    sed -i "s/use_siso = true/use_siso = false/" out/Default/args.gn
 
     cat <<EOF >> out/Default/args.gn
 ccache_prefix = "ccache"
