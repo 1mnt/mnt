@@ -3,6 +3,9 @@
 set -x
 
 setup_sync() {
+    git clone -q https://chromium.googlesource.com/chromium/tools/depot_tools.git "$PWD/depot_tools"
+    export PATH="$PWD/depot_tools:$PATH"
+
     git clone -q --depth=1 https://github.com/GrapheneOS/Vanadium.git "$PWD/Vanadium"
     git clone -q https://github.com/rovars/rom "$PWD/rom"
     
@@ -23,6 +26,7 @@ setup_sync() {
 }
 
 build_src() {
+    export PATH="$PWD/depot_tools:$PATH"
     source rovx --ccache
 
     cd src
