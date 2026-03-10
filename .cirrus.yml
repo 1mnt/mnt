@@ -19,10 +19,10 @@ task:
     - echo "$gitconfigs" > ~/.gitconfig
     - rm -rf .git
     - rovx --start
-    - ./script/chromium.sh --sync
+    - ./build.sh --sync
   
-  build_script: ./script/chromium.sh --build
-  upload_script: ./script/chromium.sh --upload
+  build_script: ./build.sh --build
+  upload_script: ./build.sh --upload
 
   on_failure:
     notif_error_script:
