@@ -28,11 +28,6 @@ build_src() {
     source "$PWD/build/make/rbesetup.sh"
     # source rovx --ccache
 
-    export RBE_service="rovx.buildbuddy.io:443"
-    export RBE_remote_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
-    export RBE_use_rpc_credentials=false
-    export RBE_service_no_auth=true
-
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.x509.pem" "$OWN_KEYS_DIR/testkey.x509.pem"
@@ -46,7 +41,31 @@ build_src() {
     #source "$PWD/rox/script/mmm.sh" icons
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
-    use_rbe mka bacon
+    use_rbe 
+    export USE_RBE="true"
+export RBE_service="rovx.buildbuddy.io:443"
+export RBE_instance="default_instance"
+export RBE_use_rpc_credentials=true
+export RBE_service_no_auth=false
+export RBE_remote_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
+export RBE_remote_header="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
+unset RBE_use_application_default_credentials
+export RBE_re_proxy="${PWD}/prebuilts/remoteexecution-client/latest/reproxy"
+export RBE_rewrapper="${PWD}/prebuilts/remoteexecution-client/latest/rewrapper"
+export RBE_DIR="${PWD}/prebuilts/remoteexecution-client/latest"
+export RBE_CXX_EXEC_STRATEGY="remote"
+export RBE_JAVAC_EXEC_STRATEGY="remote"
+export RBE_R8_EXEC_STRATEGY="remote"
+export RBE_D8_EXEC_STRATEGY="remote"
+export RBE_CXX=1
+export RBE_JAVAC=1
+export RBE_R8=1
+export RBE_D8=1
+export RBE_exec_timeout="10m"
+export RBE_dial_timeout="10m"
+export RBE_download_outputs=true
+export RBE_use_unified_cas_ops="true"
+    mka bacon
     #mka selinux_policy
 }
 
