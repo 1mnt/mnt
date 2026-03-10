@@ -27,9 +27,8 @@ build_src() {
     export PATH="$PWD/depot_tools:$PATH"
     source rovx --ccache
     
-    # Linux-specific Chromium optimizations for ccache
-    export CCACHE_CPP2=yes
-    export CCACHE_SLOPPINESS=include_file_mtime,time_macros
+    # Ccache optimizations based on Chromium documentation
+    export CCACHE_SLOPPINESS=include_file_mtime
     export CCACHE_BASEDIR="$PWD"
 
     cd src
