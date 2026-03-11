@@ -100,13 +100,13 @@ v8_symbol_level = 0
 blink_symbol_level = 0
 EOF
 
-    export RBE_exec_strategy=remote_local_fallback
-    export RBE_num_remote_reruns=3
-    
+    gn help buildargs && exit 1
+
     gn gen out/Default
     mkdir -p out
-    
-    siso ninja -k 0 -C out/Default chrome_public_apk 2>&1 | tee out/error.log
+    timeout 20m siso ninja --offline -C out/Default chrome_public_apk 2>&1 | tee out/error.log || true
+
+    siso ninja -C out/Default chrome_public_apk 2>&1 | tee -a out/error.log
 }
 
 upload_build() {
