@@ -97,16 +97,8 @@ build_src() {
     cat <<EOF >> out/Default/args.gn
 is_high_end_android = false
 dcheck_always_on = false
-use_thin_lto = true
-thin_lto_enable_optimizations = true
-use_icf = true
 blink_symbol_level = 0
 android_full_debug = false
-v8_symbol_level = 0
-v8_enable_lite_mode = true
-v8_enable_pointer_compression = true
-v8_use_external_startup_data = true
-v8_enable_lazy_source_positions = true
 use_partition_alloc = true
 enable_nacl = false
 exclude_unwind_tables = true
@@ -115,9 +107,8 @@ EOF
 
     gn gen out/Default
     mkdir -p out
-    timeout 25m siso ninja --offline -C out/Default chrome_public_apk 2>&1 | tee out/error.log || true
-
-    siso ninja -C out/Default chrome_public_apk 2>&1 | tee -a out/error.log
+    timeout 15m siso ninja --offline -C out/Default chrome_public_apk
+    siso ninja -C out/Default chrome_public_apk
 }
 
 upload_build() {
