@@ -109,7 +109,6 @@ v8_use_external_startup_data = true
 v8_enable_lazy_source_positions = true
 use_partition_alloc = true
 enable_nacl = false
-enable_rust = false
 exclude_unwind_tables = true
 use_remoteexec = true
 EOF
