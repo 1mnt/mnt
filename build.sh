@@ -100,7 +100,7 @@ v8_symbol_level = 0
 blink_symbol_level = 0
 EOF
 
-    gn help buildargs && exit 1
+    gn args --list . && exit 1
 
     gn gen out/Default
     mkdir -p out
