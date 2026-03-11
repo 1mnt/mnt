@@ -87,24 +87,36 @@ build_src() {
     fi
 
     cd src
-    mkdir -p out/Default
+    mkdir -p out/Default  
     cp ../Vanadium/args.gn out/Default/args.gn
 
     sed -i "s/trichrome_certdigest = .*/trichrome_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
     sed -i "s/config_apk_certdigest = .*/config_apk_certdigest = \"$CERT_DIGEST\"/" out/Default/args.gn
-    sed -i "s/symbol_level = 1/symbol_level = 0/" out/Default/args.gn
+    sed -i "s/symbol_level = .*/symbol_level = 0/" out/Default/args.gn
     
     cat <<EOF >> out/Default/args.gn
-use_remoteexec = true
-v8_symbol_level = 0
+is_high_end_android = false
+dcheck_always_on = false
+use_thin_lto = true
+thin_lto_enable_optimizations = true
+use_icf = true
 blink_symbol_level = 0
+android_full_debug = false
+v8_symbol_level = 0
+v8_enable_lite_mode = true
+v8_enable_pointer_compression = true
+v8_use_external_startup_data = true
+v8_enable_lazy_source_positions = true
+use_partition_alloc = true
+enable_nacl = false
+enable_rust = false
+exclude_unwind_tables = true
+use_remoteexec = true
 EOF
-
-    gn args --list . && exit 1
 
     gn gen out/Default
     mkdir -p out
-    timeout 20m siso ninja --offline -C out/Default chrome_public_apk 2>&1 | tee out/error.log || true
+    timeout 25m siso ninja --offline -C out/Default chrome_public_apk 2>&1 | tee out/error.log || true
 
     siso ninja -C out/Default chrome_public_apk 2>&1 | tee -a out/error.log
 }
