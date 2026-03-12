@@ -98,10 +98,7 @@ build_src() {
 is_high_end_android = false
 dcheck_always_on = false
 blink_symbol_level = 0
-android_full_debug = false
-use_partition_alloc = true
-enable_nacl = false
-exclude_unwind_tables = true
+v8_symbol_level = 0
 use_remoteexec = true
 EOF
 
