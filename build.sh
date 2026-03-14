@@ -3,8 +3,6 @@
 set -x
 
 setup_sync() {
-    sudo apt-get update -qq && sudo apt-get install -y -qq default-jdk jq curl
-
     git clone -q https://chromium.googlesource.com/chromium/tools/depot_tools.git "$PWD/depot_tools"
     export PATH="$PWD/depot_tools:$PATH"
 
@@ -95,16 +93,41 @@ build_src() {
     sed -i "s/symbol_level = .*/symbol_level = 0/" out/Default/args.gn
     
     cat <<EOF >> out/Default/args.gn
-is_high_end_android = false
-dcheck_always_on = false
 blink_symbol_level = 0
 v8_symbol_level = 0
 use_remoteexec = true
+debuggable_apks = false
+dcheck_always_on = false
+chrome_pgo_phase = 2
+is_high_end_android = falss
+treat_warnings_as_errors = true
+use_debug_fission = true
+use_errorprone_java_compiler = false
+use_rtti = false
+exclude_unwind_tables = false
+icu_use_data_file = true
+enable_iterator_debugging = false
+enable_precompiled_headers = false
+disable_android_lint = true
+generate_linker_map = true
+include_both_v8_snapshots = false
+include_both_v8_snapshots_android_secondary_abi = false
+use_v8_context_snapshot = false
+enable_hangout_services_extension = false
+enable_mdns = false
+rtc_build_examples = false
+build_contextual_search = false
+build_with_tflite_lib = false
+build_tflite_with_xnnpack = false
+enable_bound_session_credentials = false
+safe_browsing_use_unrar = false
+enable_request_header_integrity = false
+enable_glic = false
 EOF
 
     gn gen out/Default
     mkdir -p out
-    timeout 30m siso ninja --offline -C out/Default chrome_public_apk
+    timeout 20m siso ninja --offline -C out/Default chrome_public_apk
     siso ninja -C out/Default chrome_public_apk
 }
 
