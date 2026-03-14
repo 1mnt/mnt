@@ -122,7 +122,6 @@ build_tflite_with_xnnpack = false
 enable_bound_session_credentials = false
 safe_browsing_use_unrar = false
 enable_request_header_integrity = false
-enable_glic = false
 EOF
 
     gn gen out/Default
