@@ -114,14 +114,6 @@ include_both_v8_snapshots = false
 include_both_v8_snapshots_android_secondary_abi = false
 use_v8_context_snapshot = false
 enable_hangout_services_extension = false
-enable_mdns = false
-rtc_build_examples = false
-build_contextual_search = false
-build_with_tflite_lib = false
-build_tflite_with_xnnpack = false
-enable_bound_session_credentials = false
-safe_browsing_use_unrar = false
-enable_request_header_integrity = false
 EOF
 
     gn gen out/Default
