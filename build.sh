@@ -38,7 +38,8 @@ build_src() {
     export BUILD_HOSTNAME="android-build"
 
     lunch lineage_RMX2185-user
-    source "$PWD/rox/script/mmm.sh" trebuchet|| exit 1
+  
+    source "$PWD/rox/script/mmm.sh" systemui
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
     #mka bacon
