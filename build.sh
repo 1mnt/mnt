@@ -26,7 +26,7 @@ setup_src() {
 
 build_src() {
     source "$PWD/build/envsetup.sh"
-    # source rovx --ccache
+    source rovx --ccache
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
@@ -38,7 +38,7 @@ build_src() {
     export BUILD_HOSTNAME="android-build"
 
     lunch lineage_RMX2185-user
-    source "$PWD/rox/script/mmm.sh" systemui || exit 1
+    source "$PWD/rox/script/mmm.sh" trebuchet|| exit 1
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
     #mka bacon
