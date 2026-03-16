@@ -8,15 +8,12 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    # patch -p1 < "$PWD/rox/script/sepolicy.patch"
+    patch -p1 < "$PWD/rox/script/sepolicy.patch"
     patch -p1 < "$PWD/rox/script/core.patch"
     source "$PWD/rox/script/constify.sh"
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
-
-    rm -rf system/sepolicy
-    git clone https://github.com/bimuafaq/android_system_sepolicy --depth=1 system/sepolicy
-
+    
     #rm -rf kernel/realme/RMX2185
     #git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
     #cd kernel/realme/RMX2185
@@ -39,9 +36,7 @@ build_src() {
 
     lunch lineage_RMX2185-user
   
-    source "$PWD/rox/script/mmm.sh" systemui
-    #chmod +x "$PWD/rox/script/fix.sh"
-    #source "$PWD/rox/script/fix.sh" || exit 1
+    source "$PWD/rox/script/mmm.sh" system  
     #mka bacon
     #mka selinux_policy
 }

@@ -24,7 +24,7 @@ task:
     - echo "$XRCLONE_DATA" > ~/.rclone.conf
     - rm -rf .git
     - rovx --start
-  restore_ccache_script: rovx --restore
+  # restore_ccache_script: rovx --restore
   resync_script: ./build.sh --sync
   build_script: ./build.sh --build
   # save_ccache_script: rovx --save
