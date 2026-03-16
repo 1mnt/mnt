@@ -14,8 +14,8 @@ setup_src() {
 
     git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
 
-    rm -rf prebuilts/remoteexecution-client/latest
-    git clone https://github.com/rovars/reclient prebuilts/remoteexecution-client/latest
+    rm -rf system/sepolicy
+    git clone https://github.com/bimuafaq/android_system_sepolicy --depth=1 system/sepolicy
 
     #rm -rf kernel/realme/RMX2185
     #git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
@@ -25,7 +25,7 @@ setup_src() {
 }
 
 build_src() {
-    source "$PWD/build/make/rbesetup.sh"
+    source "$PWD/build/envsetup.sh"
     # source rovx --ccache
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
@@ -37,35 +37,11 @@ build_src() {
     export BUILD_USERNAME="nobody"
     export BUILD_HOSTNAME="android-build"
 
-    lunch lineage_RMX2185-userdebug
-    #source "$PWD/rox/script/mmm.sh" icons
+    lunch lineage_RMX2185-user
+    source "$PWD/rox/script/mmm.sh" systemui || exit 1
     #chmod +x "$PWD/rox/script/fix.sh"
     #source "$PWD/rox/script/fix.sh" || exit 1
-    use_rbe 
-    export USE_RBE="true"
-export RBE_service="rovx.buildbuddy.io:443"
-export RBE_instance="default_instance"
-export RBE_use_rpc_credentials=true
-export RBE_service_no_auth=false
-export RBE_remote_headers="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
-export RBE_remote_header="x-buildbuddy-api-key=zIx7az2F92q3bmQIUb6U"
-unset RBE_use_application_default_credentials
-export RBE_re_proxy="${PWD}/prebuilts/remoteexecution-client/latest/reproxy"
-export RBE_rewrapper="${PWD}/prebuilts/remoteexecution-client/latest/rewrapper"
-export RBE_DIR="${PWD}/prebuilts/remoteexecution-client/latest"
-export RBE_CXX_EXEC_STRATEGY="remote"
-export RBE_JAVAC_EXEC_STRATEGY="remote"
-export RBE_R8_EXEC_STRATEGY="remote"
-export RBE_D8_EXEC_STRATEGY="remote"
-export RBE_CXX=1
-export RBE_JAVAC=1
-export RBE_R8=1
-export RBE_D8=1
-export RBE_exec_timeout="10m"
-export RBE_dial_timeout="10m"
-export RBE_download_outputs=true
-export RBE_use_unified_cas_ops="true"
-    mka bacon
+    #mka bacon
     #mka selinux_policy
 }
 
