@@ -36,7 +36,7 @@ build_src() {
 
     lunch lineage_RMX2185-user
   
-    source "$PWD/rox/script/mmm.sh" trebuchet
+    source "$PWD/rox/script/mmm.sh" system
     #mka bacon
     #mka selinux_policy
 }
@@ -67,7 +67,7 @@ upload_build() {
         rovx --post "Uploading build result to Telegram..."
         timeout 15m telegram-upload "$release_file" --to "$TG_CHAT_ID" --caption "$CIRRUS_COMMIT_MESSAGE"
     else
-        rovx --post "Build file not found for upload"
+        # rovx --post "Build file not found for upload"
         exit 0
     fi
 }
