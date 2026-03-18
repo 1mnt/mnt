@@ -23,7 +23,7 @@ setup_src() {
 
 build_src() {
     source "$PWD/build/envsetup.sh"
-    source rovx --ccache
+    # source rovx --ccache
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
@@ -36,8 +36,8 @@ build_src() {
 
     lunch lineage_RMX2185-user
   
-    source "$PWD/rox/script/mmm.sh" system
-    #mka bacon
+    # source "$PWD/rox/script/mmm.sh" system
+    mka bacon
     #mka selinux_policy
 }
 
