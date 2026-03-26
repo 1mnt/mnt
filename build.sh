@@ -8,22 +8,24 @@ setup_src() {
 
     repo sync -j8 -c --no-clone-bundle --no-tags
 
-    patch -p1 < "$PWD/rox/script/sepolicy.patch"
-    patch -p1 < "$PWD/rox/script/core.patch"
-    source "$PWD/rox/script/constify.sh"
-
-    git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
+    patch -p1 < "$PWD/rox/script/patches/sepolicy.patch"
+    patch -p1 < "$PWD/rox/script/patches/core.patch"
     
-    #rm -rf kernel/realme/RMX2185
-    #git clone https://github.com/rovars/kernel_realme_RMX2185 kernel/realme/RMX2185 --depth=5
-    #cd kernel/realme/RMX2185
-    #git reset --hard HEAD~3
-    #cd -   
+    cd system/core
+    git am "$PWD/rox/script/patches/corex.patch"
+    cd -
+
+    cd build/make
+    git am "$PWD/rox/script/patches/build.patch"
+    cd -
+
+    source "$PWD/rox/script/constify.sh"
+    git clone https://github.com/bimuafaq/android_vendor_extra vendor/extra
 }
 
 build_src() {
     source "$PWD/build/envsetup.sh"
-    # source rovx --ccache
+    source rovx --ccache
 
     export OWN_KEYS_DIR="$PWD/rox/keys"
     sudo ln -sf "$OWN_KEYS_DIR/releasekey.pk8" "$OWN_KEYS_DIR/testkey.pk8"
@@ -37,7 +39,7 @@ build_src() {
     lunch lineage_RMX2185-user
   
     # source "$PWD/rox/script/mmm.sh" system
-    mka bacon
+    mka bacon #& sleep 80m; kill %1 || true
     #mka selinux_policy
 }
 
