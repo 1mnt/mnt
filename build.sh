@@ -10,13 +10,13 @@ setup_src() {
 
     patch -p1 < "$PWD/rox/script/patches/sepolicy.patch"
     patch -p1 < "$PWD/rox/script/patches/core.patch"
-    
+
     cd system/core
-    git am "$PWD/rox/script/patches/corex.patch"
+    git am "../../rox/script/patches/corex.patch"
     cd -
 
     cd build/make
-    git am "$PWD/rox/script/patches/build.patch"
+    git am "../../rox/script/patches/build.patch"
     cd -
 
     source "$PWD/rox/script/constify.sh"
