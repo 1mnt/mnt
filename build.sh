@@ -76,11 +76,13 @@ build_src() {
     export PATH="$PWD/depot_tools:$PATH"
     export SISO_CREDENTIAL_HELPER="$PWD/siso-credential-helper.sh"
 
-    if [ -f "$PWD/rom/script/chrome/rov.keystore" ]; then
-        CERT_DIGEST=$(keytool -export-cert -alias rov -keystore "$PWD/rom/script/chrome/rov.keystore" -storepass rovars | sha256sum | awk '{print $1}')
-    else
-        CERT_DIGEST="c6adb8b83c6d4c17d292afde56fd488a51d316ff8f2c11c5410223bff8a7dbb3"
+    KEYSTORE="$PWD/vanadium.keystore"
+    
+    if [ ! -f "$KEYSTORE" ]; then
+        keytool -genkeypair -alias vanadium -keystore "$KEYSTORE" -storepass vanadium -keypass vanadium -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Vanadium, OU=Vanadium, O=Vanadium, L=Vanadium, ST=Vanadium, C=ID"
     fi
+    
+    CERT_DIGEST=$(keytool -export-cert -alias vanadium -keystore "$KEYSTORE" -storepass vanadium | sha256sum | awk '{print $1}')
 
     cd src
     mkdir -p out/Default  
@@ -98,9 +100,11 @@ is_high_end_android = false
 EOF
 
     gn gen out/Default
-    mkdir -p out
-    timeout 30m siso ninja --offline -C out/Default chrome_public_bundle
-    siso ninja -C out/Default chrome_public_bundle
+    timeout 40m siso ninja --offline -C out/Default trichrome_webview_64_32_apk trichrome_chrome_64_32_apk trichrome_library_64_32_apk vanadium_config_apk 2>/dev/null || true
+    siso ninja -C out/Default trichrome_webview_64_32_apk trichrome_chrome_64_32_apk trichrome_library_64_32_apk vanadium_config_apk
+    
+    cp "$PWD/vanadium.keystore" "$PWD/../vanadium.keystore" 2>/dev/null || true
+    echo "vanadium" | ../Vanadium/generate-release out
 }
 
 upload_build() {
@@ -109,21 +113,20 @@ upload_build() {
     mkdir -p ~/.config
     [ -f "$PWD/rom/config.zip" ] && unzip -q "$PWD/rom/config.zip" -d ~/.config
 
-    AAB_FILE=$(find "$PWD/src/out/Default/apks" -name "ChromePublic.aab" | head -n 1)
+    APK_FILES=$(find "$PWD/src/out/Default/apks/release" -name "*.apk" 2>/dev/null | head -n 4)
     
-    if [ -f "$AAB_FILE" ]; then
-        BUNDLETOOL_JAR="$PWD/bundletool-all.jar"
-        curl -sL "https://github.com/google/bundletool/releases/latest/download/bundletool-all.jar" -o "$BUNDLETOOL_JAR"
+    if [ -n "$APK_FILES" ]; then
+        APK_DIR="$PWD/trichrome_apks"
+        mkdir -p "$APK_DIR"
+        cp $APK_FILES "$APK_DIR/" 2>/dev/null || true
         
-        java -jar "$BUNDLETOOL_JAR" build-apks --bundle="$AAB_FILE" --output="$PWD/ChromePublic.apks" --mode=universal --ks="$PWD/rom/script/chrome/rov.keystore" --ks-pass=pass:rovars --ks-key-alias=rov
-        
-        ARCHIVE_NAME="Vanadium-${VANADIUM_TAG}-arm64-$(date +%Y%m%d).tar.gz"
-        tar -czf "$PWD/$ARCHIVE_NAME" -C "$PWD" ChromePublic.apks
+        ARCHIVE_NAME="Vanadium-${VANADIUM_TAG}-trichrome-$(date +%Y%m%d).tar.gz"
+        tar -czf "$PWD/$ARCHIVE_NAME" -C "$PWD" trichrome_apks
         
         rovx --post "$PWD/$ARCHIVE_NAME" "Build successful: $ARCHIVE_NAME"
         telegram-upload "$PWD/$ARCHIVE_NAME" --to "$TG_CHAT_ID" || true
     else
-        rovx --post "Build failed: AAB not found."
+        rovx --post "Build failed: APKs not found."
     fi
 }
 
