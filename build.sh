@@ -1,12 +1,10 @@
 #!/bin/bash
 
-set -x
-
 setup_sync() {
     git clone -q https://chromium.googlesource.com/chromium/tools/depot_tools.git "$PWD/depot_tools"
     export PATH="$PWD/depot_tools:$PATH"
 
-    LATEST_TAG=$(curl -sL https://api.github.com/repos/GrapheneOS/Vanadium/releases/latest | jq -r .tag_name)
+    LATEST_TAG=148.0.7778.96.0
     CHROMIUM_VERSION=${LATEST_TAG%.*}
     echo "$LATEST_TAG" > "$PWD/vanadium_tag.txt"
 
@@ -78,8 +76,8 @@ build_src() {
     export PATH="$PWD/depot_tools:$PATH"
     export SISO_CREDENTIAL_HELPER="$PWD/siso-credential-helper.sh"
 
-    if [ -f "$PWD/rom/script/rov.keystore" ]; then
-        CERT_DIGEST=$(keytool -export-cert -alias rov -keystore "$PWD/rom/script/rov.keystore" -storepass rovars | sha256sum | awk '{print $1}')
+    if [ -f "$PWD/rom/script/chrome/rov.keystore" ]; then
+        CERT_DIGEST=$(keytool -export-cert -alias rov -keystore "$PWD/rom/script/chrome/rov.keystore" -storepass rovars | sha256sum | awk '{print $1}')
     else
         CERT_DIGEST="c6adb8b83c6d4c17d292afde56fd488a51d316ff8f2c11c5410223bff8a7dbb3"
     fi
@@ -96,30 +94,13 @@ build_src() {
 blink_symbol_level = 0
 v8_symbol_level = 0
 use_remoteexec = true
-debuggable_apks = false
-dcheck_always_on = false
-chrome_pgo_phase = 2
 is_high_end_android = false
-treat_warnings_as_errors = true
-use_debug_fission = true
-use_errorprone_java_compiler = false
-use_rtti = false
-exclude_unwind_tables = false
-icu_use_data_file = true
-enable_iterator_debugging = false
-enable_precompiled_headers = false
-disable_android_lint = true
-generate_linker_map = true
-include_both_v8_snapshots = false
-include_both_v8_snapshots_android_secondary_abi = false
-use_v8_context_snapshot = false
-enable_hangout_services_extension = false
 EOF
 
     gn gen out/Default
     mkdir -p out
-    timeout 20m siso ninja --offline -C out/Default chrome_public_apk
-    siso ninja -C out/Default chrome_public_apk
+    timeout 30m siso ninja --offline -C out/Default chrome_public_bundle
+    siso ninja -C out/Default chrome_public_bundle
 }
 
 upload_build() {
@@ -128,20 +109,21 @@ upload_build() {
     mkdir -p ~/.config
     [ -f "$PWD/rom/config.zip" ] && unzip -q "$PWD/rom/config.zip" -d ~/.config
 
-    APK_FILE=$(find "$PWD/src/out/Default/apks" -name "ChromePublic.apk" | head -n 1)
+    AAB_FILE=$(find "$PWD/src/out/Default/apks" -name "ChromePublic.aab" | head -n 1)
     
-    if [ -f "$APK_FILE" ]; then
-        APKSIGNER=$(find "$PWD/src/third_party/android_sdk/public/build-tools" -name apksigner -type f | head -n 1)
+    if [ -f "$AAB_FILE" ]; then
+        BUNDLETOOL_JAR="$PWD/bundletool-all.jar"
+        curl -sL "https://github.com/google/bundletool/releases/latest/download/bundletool-all.jar" -o "$BUNDLETOOL_JAR"
         
-        "$APKSIGNER" sign --ks "$PWD/rom/script/rov.keystore" --ks-pass pass:rovars --ks-key-alias rov --in "$APK_FILE" --out "$PWD/Signed-ChromePublic.apk" || cp "$APK_FILE" "$PWD/Signed-ChromePublic.apk"
+        java -jar "$BUNDLETOOL_JAR" build-apks --bundle="$AAB_FILE" --output="$PWD/ChromePublic.apks" --mode=universal --ks="$PWD/rom/script/chrome/rov.keystore" --ks-pass=pass:rovars --ks-key-alias=rov
         
         ARCHIVE_NAME="Vanadium-${VANADIUM_TAG}-arm64-$(date +%Y%m%d).tar.gz"
-        tar -czf "$PWD/$ARCHIVE_NAME" -C "$PWD" Signed-ChromePublic.apk
+        tar -czf "$PWD/$ARCHIVE_NAME" -C "$PWD" ChromePublic.apks
         
         rovx --post "$PWD/$ARCHIVE_NAME" "Build successful: $ARCHIVE_NAME"
         telegram-upload "$PWD/$ARCHIVE_NAME" --to "$TG_CHAT_ID" || true
     else
-        rovx --post "Build failed: APK not found."
+        rovx --post "Build failed: AAB not found."
     fi
 }
 
