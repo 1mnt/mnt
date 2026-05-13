@@ -100,8 +100,8 @@ is_high_end_android = false
 EOF
 
     gn gen out/Default
-    timeout 40m siso ninja --offline -C out/Default trichrome_webview_64_32_apk trichrome_chrome_64_32_apk trichrome_library_64_32_apk vanadium_config_apk 2>/dev/null || true
-    siso ninja -C out/Default trichrome_webview_64_32_apk trichrome_chrome_64_32_apk trichrome_library_64_32_apk vanadium_config_apk
+    timeout 40m siso ninja --offline -C out/Default trichrome_chrome_64_apk trichrome_library_64_apk vanadium_config_apk 2>/dev/null || true
+    siso ninja -C out/Default trichrome_chrome_64_apk trichrome_library_64_apk vanadium_config_apk
     
     cp "$PWD/vanadium.keystore" "$PWD/../vanadium.keystore" 2>/dev/null || true
     echo "vanadium" | ../Vanadium/generate-release out
